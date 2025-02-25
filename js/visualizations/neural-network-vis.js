@@ -4,6 +4,13 @@ class NeuralNetworkVis {
         this.container = document.getElementById(containerId);
         if (!this.container) return;
         
+        // Get container dimensions
+        const rect = this.container.getBoundingClientRect();
+        
+        // Set minimum dimensions
+        this.width = Math.max(rect.width, 400);
+        this.height = Math.max(rect.height, 300);
+        
         // Check WebGL support
         if (!this.isWebGLSupported()) {
             this.showWebGLError();
@@ -35,6 +42,10 @@ class NeuralNetworkVis {
         
         // Store for cleanup
         this.isActive = true;
+        
+        // Add resize handler
+        this.resizeHandler = this.handleResize.bind(this);
+        window.addEventListener('resize', this.resizeHandler);
     }
     
     isWebGLSupported() {
@@ -71,10 +82,10 @@ class NeuralNetworkVis {
         // Use WebGL2 renderer with better performance settings
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
-            powerPreference: 'high-performance'
+            alpha: true
         });
-        this.renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1); // Limit for performance
-        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.setSize(this.width, this.height);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.container.appendChild(this.renderer.domElement);
     }
     
@@ -114,22 +125,52 @@ class NeuralNetworkVis {
     dispose() {
         this.isActive = false;
         
+        // Cancel animation frame
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
         }
         
         // Remove event listeners
         window.removeEventListener('resize', this.resizeHandler);
+        if (this.controls) {
+            this.controls.dispose();
+        }
         
-        // Dispose THREE.js resources
-        this.cleanupNetwork();
-        this.controls.dispose();
-        this.renderer.dispose();
+        // Dispose THREE.js resources properly
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (object.material.map) {
+                        object.material.map.dispose();
+                    }
+                    object.material.dispose();
+                }
+            });
+        }
+        
+        if (this.renderer) {
+            this.renderer.dispose();
+            this.renderer.forceContextLoss();
+            this.renderer.domElement = null;
+        }
         
         // Clear container
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
+        if (this.container) {
+            while (this.container.firstChild) {
+                this.container.removeChild(this.container.firstChild);
+            }
         }
+        
+        // Clear references
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.controls = null;
+        this.nodes = null;
+        this.connections = null;
     }
     
     createFallback2DNetwork() {
@@ -302,7 +343,7 @@ class NeuralNetworkVis {
 
     // Add missing camera setup method
     setupCamera() {
-        const aspect = this.container.clientWidth / this.container.clientHeight;
+        const aspect = this.width / this.height;
         this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
         this.camera.position.z = 15;
     }
@@ -327,9 +368,6 @@ class NeuralNetworkVis {
 
     // Add missing event listener setup
     setupEventListeners() {
-        this.resizeHandler = this.handleResize.bind(this);
-        window.addEventListener('resize', this.resizeHandler);
-        
         // Add UI control listeners
         const layersInput = document.getElementById('nn-layers');
         if (layersInput) {
@@ -344,10 +382,13 @@ class NeuralNetworkVis {
 
     // Add missing resize handler
     handleResize() {
-        if (!this.container || !this.camera || !this.renderer) return;
+        const rect = this.container.getBoundingClientRect();
+        this.width = Math.max(rect.width, 400);
+        this.height = Math.max(rect.height, 300);
         
-        this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+        this.camera.aspect = this.width / this.height;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        
+        this.renderer.setSize(this.width, this.height);
     }
 } 

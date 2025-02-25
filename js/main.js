@@ -10,6 +10,45 @@ window.localExplanationsVis = null;
 window.counterfactualsVis = null;
 window.particleBackgrounds = {};
 
+// Add global event listener tracking
+const eventListeners = new Map();
+
+function addTrackedEventListener(element, event, handler) {
+    if (!element) return;
+    
+    const listeners = eventListeners.get(element) || [];
+    listeners.push({ event, handler });
+    eventListeners.set(element, listeners);
+    
+    element.addEventListener(event, handler);
+}
+
+function removeAllTrackedEventListeners(element) {
+    if (!element) return;
+    
+    const listeners = eventListeners.get(element);
+    if (listeners) {
+        listeners.forEach(({ event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        eventListeners.delete(element);
+    }
+}
+
+// Use in visualization cleanup
+function cleanupVisualization(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const visualization = container.visualization;
+    if (visualization && typeof visualization.dispose === 'function') {
+        visualization.dispose();
+    }
+    
+    removeAllTrackedEventListeners(container);
+    container.visualization = null;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
     
@@ -112,49 +151,73 @@ function initVisualizations() {
     }
 }
 
-// Improved visualization initialization with WebGL detection and error handling
+// Add resize observer to handle visualization sizing
+function initVisualizationSizing() {
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const container = entry.target;
+            const visualization = container.visualization;
+            
+            if (visualization && typeof visualization.resize === 'function') {
+                visualization.resize();
+            }
+        }
+    });
+    
+    // Observe all visualization containers
+    document.querySelectorAll('.visualization-container').forEach(container => {
+        resizeObserver.observe(container);
+    });
+}
+
+// Enhanced visualization initialization
 function initVisualizationWithContainer(containerId, initFunction) {
     const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    // Clear any existing content
-    while (container.firstChild) {
-        container.removeChild(container.firstChild);
+    if (!container) {
+        console.error(`Container ${containerId} not found`);
+        return;
     }
+    
+    // Ensure container has dimensions
+    const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+        console.error(`Container ${containerId} has zero dimensions`);
+        container.style.minHeight = '400px';  // Set minimum height
+    }
+    
+    // Show loading state
+    const loadingIndicator = LoadingAnimation.show(containerId);
     
     try {
-        // Check for WebGL support for 3D visualizations
-        if (containerId.includes('neural-network') && !isWebGLSupported()) {
-            throw new Error('WebGL not supported');
+        // Clear container safely
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
         }
         
-        // Set proper dimensions
-        const containerRect = container.getBoundingClientRect();
-        if (containerRect.width > 0 && containerRect.height > 0) {
-            container.style.width = `${containerRect.width}px`;
-            container.style.height = `${containerRect.height}px`;
+        // Initialize visualization with error boundary
+        const visualization = initFunction();
+        container.visualization = visualization;
+        
+        if (loadingIndicator) {
+            LoadingAnimation.hide(loadingIndicator);
         }
-        
-        // Show loading indicator
-        const loadingIndicator = LoadingAnimation.show(containerId);
-        
-        // Initialize with a delay to ensure DOM is ready
-        setTimeout(() => {
-            try {
-                initFunction();
-                setTimeout(() => {
-                    LoadingAnimation.hide(loadingIndicator);
-                }, 500);
-            } catch (error) {
-                console.error(`Error initializing ${containerId}:`, error);
-                LoadingAnimation.hide(loadingIndicator);
-                handleVisualizationError(containerId, error);
-            }
-        }, 100);
     } catch (error) {
-        console.error(`Error setting up ${containerId}:`, error);
-        handleVisualizationError(containerId, error);
+        console.error(`Error initializing visualization ${containerId}:`, error);
+        showVisualizationError(container, error);
     }
+}
+
+// Add error handling for visualizations
+function showVisualizationError(container, error) {
+    container.innerHTML = `
+        <div class="error-message">
+            <h4>Visualization Error</h4>
+            <p>${error.message || 'Failed to load visualization'}</p>
+            <button class="retry-button" onclick="retryVisualization('${container.id}')">
+                Retry
+            </button>
+        </div>
+    `;
 }
 
 // WebGL support detection
