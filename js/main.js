@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add accessibility improvements
         initAccessibility();
+        
+        // Call handleHashChange on initial page load
+        handleHashChange();
     } catch (error) {
         console.error("Error initializing application:", error);
         showErrorMessage("There was an error initializing the application. Please check the console for details.");
@@ -948,6 +951,7 @@ function initVisualizationForSection(sectionId) {
     
     // Clean up any existing visualization instance
     if (window.currentVisualization) {
+        console.log('Disposing previous visualization');
         if (typeof window.currentVisualization.dispose === 'function') {
             window.currentVisualization.dispose();
         }
@@ -963,10 +967,18 @@ function initVisualizationForSection(sectionId) {
     };
     
     const containerId = containerMap[sectionId];
-    if (!containerId) return;
+    if (!containerId) {
+        console.error('No container ID found for section:', sectionId);
+        return;
+    }
     
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) {
+        console.error('Container not found:', containerId);
+        return;
+    }
+    
+    console.log('Container dimensions:', container.clientWidth, 'x', container.clientHeight);
     
     // Delay initialization if container dimensions are zero
     if (container.clientWidth === 0 || container.clientHeight === 0) {
@@ -975,9 +987,8 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    // Show loading indicator
-    const loadingIndicator = LoadingAnimation.show(containerId);
     try {
+        console.log('Creating visualization for section:', sectionId);
         switch (sectionId) {
             case 'introduction':
                 window.currentVisualization = new IntroAnimation(containerId);
@@ -994,7 +1005,10 @@ function initVisualizationForSection(sectionId) {
             case 'counterfactuals':
                 window.currentVisualization = new CounterfactualsVis(containerId);
                 break;
+            default:
+                console.error('Unknown section ID:', sectionId);
         }
+        console.log('Visualization created successfully');
     } catch (error) {
         console.error('Error initializing visualization:', error);
         container.innerHTML = `
@@ -1003,8 +1017,6 @@ function initVisualizationForSection(sectionId) {
                 <p>${error.message || 'Failed to load visualization'}</p>
             </div>
         `;
-    } finally {
-        if (loadingIndicator) { LoadingAnimation.hide(loadingIndicator); }
     }
 }
 
@@ -1043,37 +1055,4 @@ function handleNavigation(targetSectionId) {
             initVisualizationForSection(targetSectionId);
         }, 50);
     }
-}
-
-// Simple LoadingAnimation implementation
-const LoadingAnimation = {
-  show: function(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return null;
-    
-    const loader = document.createElement('div');
-    loader.className = 'loading-indicator';
-    loader.innerHTML = '<div class="spinner"></div><p>Loading...</p>';
-    loader.style.position = 'absolute';
-    loader.style.top = '0';
-    loader.style.left = '0';
-    loader.style.width = '100%';
-    loader.style.height = '100%';
-    loader.style.display = 'flex';
-    loader.style.flexDirection = 'column';
-    loader.style.alignItems = 'center';
-    loader.style.justifyContent = 'center';
-    loader.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    loader.style.color = 'white';
-    loader.style.zIndex = '100';
-    
-    container.appendChild(loader);
-    return loader;
-  },
-  
-  hide: function(loader) {
-    if (loader && loader.parentNode) {
-      loader.parentNode.removeChild(loader);
-    }
-  }
-}; 
+} 
