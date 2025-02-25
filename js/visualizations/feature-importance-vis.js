@@ -5,165 +5,184 @@ const negativeColor = "#ef4444"; // Red
 class FeatureImportanceVis {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
-        if (!this.container) return;
+        if (!this.container) {
+            console.error(`Container #${containerId} not found`);
+            return;
+        }
         
-        // Set dimensions based on container
-        this.updateDimensions();
+        console.log(`Creating FeatureImportanceVis in container:`, containerId);
+        console.log(`Container dimensions:`, this.container.clientWidth, 'x', this.container.clientHeight);
         
-        // Create chart with proper margins
-        this.margin = {
-            top: 20,
-            right: 120,
-            bottom: 40,
-            left: 200
-        };
+        // Set default dimensions if container dimensions are zero
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 400;
+        
+        // These should be assigned to instance properties
+        this.width = width;
+        this.height = height;
+        
+        // Create chart
+        this.createChart();
+        
+        // Add event listeners for method buttons
+        this.setupMethodButtons();
         
         // Add resize handler
         this.resizeHandler = this.handleResize.bind(this);
         window.addEventListener('resize', this.resizeHandler);
-        
-        // Create chart after everything is set up
-        setTimeout(() => this.createChart(), 50);
     }
     
-    updateDimensions() {
-        const rect = this.container.getBoundingClientRect();
-        this.width = rect.width;
-        this.height = rect.height;
+    setupMethodButtons() {
+        // Find method buttons
+        const methodButtons = document.querySelectorAll('.method-btn');
+        if (methodButtons.length === 0) {
+            console.warn('No method buttons found for feature importance visualization');
+            return;
+        }
         
-        if (this.svg) {
-            this.svg
-                .attr('width', this.width)
-                .attr('height', this.height);
+        // Add click event listeners
+        methodButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                methodButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
                 
-            this.updateChart();
-        }
-    }
-    
-    handleResize() {
-        this.updateDimensions();
-    }
-
-    dispose() {
-        // Stop any animations
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-        }
+                // Get method from button
+                const method = button.dataset.method || 'permutation';
+                console.log(`Switching to method: ${method}`);
+                
+                // Update visualization
+                this.updateVisualization(method);
+            });
+        });
         
-        // Remove event listeners
-        window.removeEventListener('resize', this.resizeHandler);
-        
-        // Clear SVG and container
-        if (this.svg) {
-            this.svg.remove();
-        }
-        
-        // Clear container
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
+        // Set first button as active
+        if (methodButtons[0]) {
+            methodButtons[0].classList.add('active');
         }
     }
 
-    updateChart() {
-        if (!this.svg) return;
-        
-        // Get current method
-        const activeMethod = document.querySelector('.method-btn.active');
-        const method = activeMethod ? activeMethod.dataset.method : 'permutation';
-        
-        // Get data for the current method
+    updateVisualization(method) {
+        // Generate data for the selected method
         const data = this.generateData(method);
         
         // Update scales
-        const minValUp = d3.min(data, d => d.importance);
-        const maxValUp = d3.max(data, d => d.importance);
-        this.xScale.domain([Math.min(0, minValUp), Math.max(0, maxValUp)]);
+        const maxValue = Math.max(
+            Math.abs(d3.min(data, d => d.importance)),
+            Math.abs(d3.max(data, d => d.importance))
+        );
         
-        // Update y scale
+        this.xScale.domain([-maxValue * 1.2, maxValue * 1.2]);
         this.yScale.domain(data.map(d => d.feature));
         
-        // Clear existing bars
-        this.svg.selectAll('.bar').remove();
+        // Update bars with transition
+        const svg = this.svg;
+        const xScale = this.xScale;
+        const yScale = this.yScale;
         
-        // Create new bars
-        this.svg.selectAll('.bar')
+        // Remove existing bars
+        svg.selectAll('.bar').remove();
+        
+        // Create new bars with transition
+        svg.selectAll('.bar')
             .data(data)
             .enter()
             .append('rect')
-            .attr('class', d => d.importance < 0 ? 'bar negative-bar' : 'bar positive-bar')
-            .attr('x', d => d.importance < 0 ? this.xScale(d.importance) : this.xScale(0))
-            .attr('y', d => this.yScale(d.feature))
-            .attr('height', this.yScale.bandwidth())
-            .attr('width', d => Math.abs(this.xScale(d.importance) - this.xScale(0)))
-            .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
+            .attr('class', 'bar')
+            .attr('x', d => d.importance < 0 ? xScale(d.importance) : xScale(0))
+            .attr('y', d => yScale(d.feature))
+            .attr('height', yScale.bandwidth())
+            .attr('width', 0) // Start with zero width
+            .attr('fill', d => d.importance >= 0 ? '#4ade80' : '#f87171')
+            .transition()
+            .duration(500)
+            .attr('width', d => Math.abs(xScale(d.importance) - xScale(0)));
         
-        // Update value labels
-        this.svg.selectAll('.value-label').remove();
+        // Update feature labels
+        svg.selectAll('.feature-label').remove();
         
-        this.svg.selectAll('.value-label')
+        svg.selectAll('.feature-label')
             .data(data)
             .enter()
             .append('text')
-            .attr('class', 'value-label')
-            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
+            .attr('class', 'feature-label')
+            .attr('x', -10)
+            .attr('y', d => yScale(d.feature) + yScale.bandwidth() / 2)
             .attr('dy', '0.35em')
-            .attr('x', d => this.xScale(d.importance) + (d.importance < 0 ? -5 : 5))
+            .attr('text-anchor', 'end')
+            .text(d => d.feature)
+            .style('fill', '#ffffff')
+            .style('font-size', '12px');
+        
+        // Update importance values
+        svg.selectAll('.importance-value').remove();
+        
+        svg.selectAll('.importance-value')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'importance-value')
+            .attr('x', d => d.importance < 0 ? xScale(d.importance) - 5 : xScale(d.importance) + 5)
+            .attr('y', d => yScale(d.feature) + yScale.bandwidth() / 2)
+            .attr('dy', '0.35em')
             .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
-            .attr('fill', '#ffffff')
-            .text(d => d.importance.toFixed(2));
+            .text(d => d.importance.toFixed(2))
+            .style('fill', '#bbbbbb')
+            .style('font-size', '10px');
         
         // Update axes
-        if (!this.svg.select('.x-axis').empty()) {
-            this.svg.select('.x-axis')
-                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
-                .call(d3.axisBottom(this.xScale));
-        } else {
-            this.svg.append('g')
-                .attr('class', 'x-axis')
-                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
-                .call(d3.axisBottom(this.xScale));
-        }
+        svg.select('.x-axis')
+            .transition()
+            .duration(500)
+            .call(d3.axisBottom(xScale));
         
-        if (!this.svg.select('.y-axis').empty()) {
-            this.svg.select('.y-axis')
-                .call(d3.axisLeft(this.yScale));
-        } else {
-            this.svg.append('g')
-                .attr('class', 'y-axis')
-                .call(d3.axisLeft(this.yScale));
-        }
+        svg.select('.y-axis')
+            .transition()
+            .duration(500)
+            .call(d3.axisLeft(yScale));
     }
 
-    generateData(method = 'permutation') {
-        // Generate mock data with proper neon colors
-        let data;
+    generateData(method) {
+        // Generate different data based on method
+        let data = [];
         
-        switch(method) {
+        switch (method) {
+            case 'permutation':
+                data = [
+                    { feature: 'Income', importance: 0.85 },
+                    { feature: 'Credit Score', importance: 0.78 },
+                    { feature: 'Debt Ratio', importance: 0.65 },
+                    { feature: 'Age', importance: 0.43 },
+                    { feature: 'Employment Years', importance: 0.38 },
+                    { feature: 'Loan Amount', importance: 0.35 },
+                    { feature: 'Previous Defaults', importance: 0.28 }
+                ];
+                break;
             case 'shap':
                 data = [
-                    { feature: 'Credit Score', importance: 0.85 },
-                    { feature: 'Income', importance: 0.72 },
-                    { feature: 'Debt Ratio', importance: 0.64 },
-                    { feature: 'Previous Defaults', importance: 0.58 },
-                    { feature: 'Employment Years', importance: 0.49 },
-                    { feature: 'Loan Amount', importance: 0.37 },
+                    { feature: 'Credit Score', importance: 0.92 },
+                    { feature: 'Income', importance: 0.76 },
+                    { feature: 'Previous Defaults', importance: -0.65 },
+                    { feature: 'Debt Ratio', importance: -0.58 },
+                    { feature: 'Loan Amount', importance: -0.45 },
+                    { feature: 'Employment Years', importance: 0.32 },
                     { feature: 'Age', importance: 0.25 }
                 ];
                 break;
-            case 'tree':
+            case 'lime':
                 data = [
-                    { feature: 'Credit Score', importance: 0.88 },
-                    { feature: 'Previous Defaults', importance: 0.76 },
-                    { feature: 'Income', importance: 0.67 },
-                    { feature: 'Debt Ratio', importance: 0.53 },
-                    { feature: 'Employment Years', importance: 0.42 },
-                    { feature: 'Loan Amount', importance: 0.31 },
-                    { feature: 'Age', importance: 0.15 }
+                    { feature: 'Previous Defaults', importance: -0.88 },
+                    { feature: 'Credit Score', importance: 0.75 },
+                    { feature: 'Income', importance: 0.62 },
+                    { feature: 'Debt Ratio', importance: -0.55 },
+                    { feature: 'Loan Amount', importance: -0.42 },
+                    { feature: 'Age', importance: 0.30 },
+                    { feature: 'Employment Years', importance: 0.28 }
                 ];
                 break;
-            default: // permutation
+            default:
                 data = [
-                    { feature: 'Income', importance: 0.82 },
+                    { feature: 'Income', importance: 0.85 },
                     { feature: 'Credit Score', importance: 0.78 },
                     { feature: 'Debt Ratio', importance: 0.65 },
                     { feature: 'Age', importance: 0.43 },
@@ -289,6 +308,114 @@ class FeatureImportanceVis {
         return Math.max(...data.map(d => 
             context.measureText(d.feature).width
         ));
+    }
+
+    handleResize() {
+        this.updateDimensions();
+    }
+
+    updateDimensions() {
+        const rect = this.container.getBoundingClientRect();
+        this.width = rect.width;
+        this.height = rect.height;
+        
+        if (this.svg) {
+            this.svg
+                .attr('width', this.width)
+                .attr('height', this.height);
+                
+            this.updateChart();
+        }
+    }
+
+    dispose() {
+        // Stop any animations
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+        
+        // Remove event listeners
+        window.removeEventListener('resize', this.resizeHandler);
+        
+        // Clear SVG and container
+        if (this.svg) {
+            this.svg.remove();
+        }
+        
+        // Clear container
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
+    }
+
+    updateChart() {
+        if (!this.svg) return;
+        
+        // Get current method
+        const activeMethod = document.querySelector('.method-btn.active');
+        const method = activeMethod ? activeMethod.dataset.method : 'permutation';
+        
+        // Get data for the current method
+        const data = this.generateData(method);
+        
+        // Update scales
+        const minValUp = d3.min(data, d => d.importance);
+        const maxValUp = d3.max(data, d => d.importance);
+        this.xScale.domain([Math.min(0, minValUp), Math.max(0, maxValUp)]);
+        
+        // Update y scale
+        this.yScale.domain(data.map(d => d.feature));
+        
+        // Clear existing bars
+        this.svg.selectAll('.bar').remove();
+        
+        // Create new bars
+        this.svg.selectAll('.bar')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', d => d.importance < 0 ? 'bar negative-bar' : 'bar positive-bar')
+            .attr('x', d => d.importance < 0 ? this.xScale(d.importance) : this.xScale(0))
+            .attr('y', d => this.yScale(d.feature))
+            .attr('height', this.yScale.bandwidth())
+            .attr('width', d => Math.abs(this.xScale(d.importance) - this.xScale(0)))
+            .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
+        
+        // Update value labels
+        this.svg.selectAll('.value-label').remove();
+        
+        this.svg.selectAll('.value-label')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'value-label')
+            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
+            .attr('dy', '0.35em')
+            .attr('x', d => this.xScale(d.importance) + (d.importance < 0 ? -5 : 5))
+            .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
+            .attr('fill', '#ffffff')
+            .text(d => d.importance.toFixed(2));
+        
+        // Update axes
+        if (!this.svg.select('.x-axis').empty()) {
+            this.svg.select('.x-axis')
+                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
+                .call(d3.axisBottom(this.xScale));
+        } else {
+            this.svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
+                .call(d3.axisBottom(this.xScale));
+        }
+        
+        if (!this.svg.select('.y-axis').empty()) {
+            this.svg.select('.y-axis')
+                .call(d3.axisLeft(this.yScale));
+        } else {
+            this.svg.append('g')
+                .attr('class', 'y-axis')
+                .call(d3.axisLeft(this.yScale));
+        }
     }
 }
 

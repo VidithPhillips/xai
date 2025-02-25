@@ -70,8 +70,8 @@ class LocalExplanationsVis {
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
             
         // Use neon colors for positive/negative bars
-        const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-        const negativeColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        const positiveColor = "#10b981"; // Green
+        const negativeColor = "#ef4444"; // Red
         
         // Create positive bars
         this.svg.selectAll('.positive-bar')
@@ -83,8 +83,7 @@ class LocalExplanationsVis {
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
             .attr('width', d => Math.max(0, this.xScale(d.effect) - this.xScale(0)))
-            .attr('fill', positiveColor)
-            .attr('filter', 'url(#secondary-glow)');
+            .attr('fill', positiveColor);
 
         // Create negative bars
         this.svg.selectAll('.negative-bar')
@@ -96,14 +95,55 @@ class LocalExplanationsVis {
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
             .attr('width', d => Math.max(0, this.xScale(0) - this.xScale(d.effect)))
-            .attr('fill', negativeColor)
-            .attr('filter', 'url(#accent-glow)');
-            
-        // Update axis colors
-        this.svg.selectAll('.axis text')
-            .style('fill', '#bbbbbb');
-        this.svg.selectAll('.axis path, .axis line')
-            .style('stroke', '#444444');
+            .attr('fill', negativeColor);
+        
+        // Add feature labels
+        this.svg.selectAll('.feature-label')
+            .data(this.data)
+            .enter()
+            .append('text')
+            .attr('class', 'feature-label')
+            .attr('x', -10)
+            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'end')
+            .text(d => d.feature)
+            .style('fill', '#ffffff')
+            .style('font-size', '12px');
+        
+        // Add x-axis
+        this.svg.append('g')
+            .attr('class', 'x-axis')
+            .attr('transform', `translate(0, ${innerHeight})`)
+            .call(d3.axisBottom(this.xScale))
+            .selectAll('text')
+            .style('fill', '#ffffff');
+        
+        // Add y-axis
+        this.svg.append('g')
+            .attr('class', 'y-axis')
+            .call(d3.axisLeft(this.yScale))
+            .selectAll('text')
+            .style('fill', '#ffffff');
+        
+        // Add zero line
+        this.svg.append('line')
+            .attr('x1', this.xScale(0))
+            .attr('y1', 0)
+            .attr('x2', this.xScale(0))
+            .attr('y2', innerHeight)
+            .attr('stroke', '#ffffff')
+            .attr('stroke-width', 1)
+            .attr('stroke-dasharray', '4');
+        
+        // Add title
+        this.svg.append('text')
+            .attr('x', innerWidth / 2)
+            .attr('y', -5)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#ffffff')
+            .attr('font-size', '16px')
+            .text('Feature Effects on Prediction');
     }
 
     // Add sample data method for testing

@@ -15,41 +15,50 @@ class NeuralNetworkVis {
         this.width = width;
         this.height = height;
         
-        // Check WebGL support
-        if (!this.isWebGLSupported()) {
-            this.showWebGLError();
-            return;
+        console.log(`Creating NeuralNetworkVis in container:`, containerId);
+        console.log(`Container dimensions:`, width, 'x', height);
+        
+        try {
+            // Check WebGL support
+            if (!this.isWebGLSupported()) {
+                console.warn("WebGL not supported, using 2D fallback");
+                this.createFallback2DNetwork();
+                return;
+            }
+            
+            // Setup configuration
+            this.config = {
+                layers: 3,
+                neuronsPerLayer: 5,
+                activation: 'relu'
+            };
+            
+            // Setup scene with better performance settings
+            this.setupScene();
+            this.setupCamera();
+            this.setupLights();
+            this.setupControls();
+            
+            // Initialize the network
+            this.createNetwork();
+            
+            // Start animation with performance optimization
+            this.lastRenderTime = 0;
+            this.animate();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Store for cleanup
+            this.isActive = true;
+            
+            // Add resize handler
+            this.resizeHandler = this.handleResize.bind(this);
+            window.addEventListener('resize', this.resizeHandler);
+        } catch (error) {
+            console.error("Error initializing 3D visualization:", error);
+            this.createFallback2DNetwork();
         }
-        
-        // Setup configuration
-        this.config = {
-            layers: 3,
-            neuronsPerLayer: 5,
-            activation: 'relu'
-        };
-        
-        // Setup scene with better performance settings
-        this.setupScene();
-        this.setupCamera();
-        this.setupLights();
-        this.setupControls();
-        
-        // Initialize the network
-        this.createNetwork();
-        
-        // Start animation with performance optimization
-        this.lastRenderTime = 0;
-        this.animate();
-        
-        // Setup event listeners
-        this.setupEventListeners();
-        
-        // Store for cleanup
-        this.isActive = true;
-        
-        // Add resize handler
-        this.resizeHandler = this.handleResize.bind(this);
-        window.addEventListener('resize', this.resizeHandler);
     }
     
     isWebGLSupported() {
@@ -175,58 +184,88 @@ class NeuralNetworkVis {
     }
     
     createFallback2DNetwork() {
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
+        console.log("Creating fallback 2D network visualization");
         
-        // Create an SVG-based neural network
-        const svg = d3.select(this.container)
-            .append('svg')
-            .attr('width', width)
-            .attr('height', height);
+        // Clear container
+        this.container.innerHTML = '';
         
-        // Add a simple 2D network visualization
-        const layers = [4, 6, 5, 3]; // Example network architecture
-        const nodeRadius = 10;
-        const layerSpacing = width / (layers.length + 1);
+        // Create SVG element
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.style.background = "#1a1a2e";
+        this.container.appendChild(svg);
         
-        // Draw nodes
-        layers.forEach((nodeCount, layerIndex) => {
-            const x = layerSpacing * (layerIndex + 1);
-            const verticalSpacing = height / (nodeCount + 1);
+        // Define network structure
+        const layers = [4, 6, 6, 3];
+        const layerDistance = 150;
+        const nodeRadius = 15;
+        
+        // Calculate positions
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 400;
+        
+        // Create nodes
+        const nodes = [];
+        for (let l = 0; l < layers.length; l++) {
+            const layerSize = layers[l];
+            const xPos = (l * layerDistance) + 100;
             
-            for (let i = 0; i < nodeCount; i++) {
-                const y = verticalSpacing * (i + 1);
+            for (let n = 0; n < layerSize; n++) {
+                const yPos = ((n + 0.5) * (height / layerSize));
                 
-                // Draw node
-                svg.append('circle')
-                    .attr('cx', x)
-                    .attr('cy', y)
-                    .attr('r', nodeRadius)
-                    .attr('fill', layerIndex === 0 ? '#10b981' : 
-                           layerIndex === layers.length - 1 ? '#f59e0b' : '#6366f1')
-                    .attr('opacity', 0.8);
+                // Create node
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", xPos);
+                circle.setAttribute("cy", yPos);
+                circle.setAttribute("r", nodeRadius);
+                
+                // Set color based on layer
+                let color;
+                if (l === 0) color = "#00f2ff"; // Input layer
+                else if (l === layers.length - 1) color = "#ff00d4"; // Output layer
+                else color = "#00ff88"; // Hidden layer
+                
+                circle.setAttribute("fill", color);
+                circle.setAttribute("stroke", "#ffffff");
+                circle.setAttribute("stroke-width", "2");
+                
+                svg.appendChild(circle);
+                nodes.push({ x: xPos, y: yPos, layer: l, index: n });
+            }
+        }
+        
+        // Create connections
+        for (let l = 0; l < layers.length - 1; l++) {
+            const currentLayerNodes = nodes.filter(n => n.layer === l);
+            const nextLayerNodes = nodes.filter(n => n.layer === l + 1);
+            
+            for (const sourceNode of currentLayerNodes) {
+                for (const targetNode of nextLayerNodes) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", sourceNode.x);
+                    line.setAttribute("y1", sourceNode.y);
+                    line.setAttribute("x2", targetNode.x);
+                    line.setAttribute("y2", targetNode.y);
+                    line.setAttribute("stroke", "#ffffff");
+                    line.setAttribute("stroke-width", "1");
+                    line.setAttribute("opacity", "0.3");
                     
-                // Connect to previous layer if not the first layer
-                if (layerIndex > 0) {
-                    const prevNodeCount = layers[layerIndex - 1];
-                    const prevLayerX = layerSpacing * layerIndex;
-                    const prevVerticalSpacing = height / (prevNodeCount + 1);
-                    
-                    for (let j = 0; j < prevNodeCount; j++) {
-                        const prevY = prevVerticalSpacing * (j + 1);
-                        
-                        svg.append('line')
-                            .attr('x1', prevLayerX)
-                            .attr('y1', prevY)
-                            .attr('x2', x)
-                            .attr('y2', y)
-                            .attr('stroke', '#e5e7eb')
-                            .attr('stroke-width', 1)
-                            .attr('opacity', 0.3);
-                    }
+                    svg.appendChild(line);
                 }
             }
-        });
+        }
+        
+        // Add title
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        title.setAttribute("x", width / 2);
+        title.setAttribute("y", 30);
+        title.setAttribute("text-anchor", "middle");
+        title.setAttribute("fill", "#ffffff");
+        title.setAttribute("font-size", "20px");
+        title.textContent = "Neural Network Visualization";
+        
+        svg.appendChild(title);
     }
 
     // Update the node materials for neon theme
