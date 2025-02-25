@@ -194,23 +194,28 @@
                     
                     <div class="explanation">
                         <h3>What-If Analysis</h3>
-                        <p>Counterfactual explanations show the smallest change to input features that would result in a different prediction.</p>
-                        <p>These explanations are particularly useful for actionable insights, showing users what they would need to change to get a desired outcome.</p>
+                        <p>Counterfactual explanations show how changing input values would affect the model's prediction.</p>
+                        <p>Use the sliders below to adjust feature values and see the impact on the prediction in real-time.</p>
                         
-                        <div class="scenario-selector">
-                            <h4>Select Scenario:</h4>
-                            <select id="scenario-selector">
-                                <option value="loan">Loan Application</option>
-                                <option value="medical">Medical Diagnosis</option>
-                                <option value="housing">Housing Price</option>
-                            </select>
+                        <div class="current-prediction">
+                            <h4>Current Prediction: <span id="prediction-value">Loan Denied</span></h4>
+                            <div class="prediction-meter">
+                                <div class="prediction-fill" style="width: 40%;"></div>
+                                <div class="prediction-threshold"></div>
+                            </div>
+                            <p class="prediction-label">Probability: <span id="prediction-probability">40%</span></p>
                         </div>
                         
-                        <div class="interactive-controls">
+                        <div class="feature-controls">
                             <h4>Adjust Features:</h4>
                             <div class="feature-sliders" id="counterfactual-sliders">
                                 <!-- Feature sliders will be dynamically generated -->
                             </div>
+                        </div>
+                        
+                        <div class="counterfactual-insight">
+                            <h4>Key Insight:</h4>
+                            <p id="counterfactual-message">Increasing your credit score by 50 points would change the prediction to "Loan Approved".</p>
                         </div>
                     </div>
                 </div>

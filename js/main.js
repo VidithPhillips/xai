@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
     
     try {
+        // Apply dark theme initialization
+        initDarkTheme();
+        
         // Initialize UI controls
         UIControls.initNavigation();
         UIControls.initModals();
@@ -33,6 +36,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Set up guided tours
         setupGuidedTours();
+        
+        // Ensure sliders are properly initialized
+        initializeSliders();
+        
+        // Initialize counterfactual sliders
+        initCounterfactualSliders();
+        
+        // Initialize tooltips
+        initTooltips();
+        
+        // Add GPU acceleration for animations
+        optimizePerformance();
+        
+        // Add a fun easter egg
+        addEasterEgg();
     } catch (error) {
         console.error("Error initializing application:", error);
         showErrorMessage("There was an error initializing the application. Please check the console for details.");
@@ -73,9 +91,7 @@ function initVisualizations() {
         initVisualizationWithContainer('intro-visualization', initIntroVisualization);
         
         // Initialize neural network visualization
-        initVisualizationWithContainer('neural-network-visualization', () => {
-            window.neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
-        });
+        initNeuralNetworkVisualization();
         
         // Initialize feature importance visualization
         initVisualizationWithContainer('feature-importance-visualization', () => {
@@ -370,4 +386,368 @@ function setupGuidedTours() {
             content: 'This 3D visualization shows how neural networks process information through layers of neurons.'
         }
     ]);
+}
+
+// Ensure sliders are properly initialized
+function initializeSliders() {
+    const sliderContainers = [
+        'neural-network-controls',
+        'feature-importance-controls',
+        'counterfactual-sliders'
+    ];
+    
+    sliderContainers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Find all sliders and add value display
+        const sliders = container.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            // Create or update value display
+            let valueDisplay = slider.parentNode.querySelector('.value-display');
+            if (!valueDisplay) {
+                valueDisplay = document.createElement('span');
+                valueDisplay.className = 'value-display';
+                slider.parentNode.querySelector('label').appendChild(valueDisplay);
+            }
+            valueDisplay.textContent = slider.value;
+            
+            // Update on change
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+        });
+    });
+}
+
+// Fix neural network loading issue
+function initNeuralNetworkVisualization() {
+    const containerId = 'neural-network-visualization';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    try {
+        // Check WebGL support first
+        if (!isWebGLSupported()) {
+            throw new Error('WebGL not supported');
+        }
+        
+        // Clear existing content
+        container.innerHTML = '';
+        
+        // Show loading indicator
+        const loadingIndicator = LoadingAnimation.show(containerId);
+        
+        // Ensure Three.js is loaded before continuing
+        if (typeof THREE === 'undefined') {
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', () => {
+                try {
+                    window.neuralNetworkVis = new NeuralNetworkVis(containerId);
+                    setTimeout(() => LoadingAnimation.hide(loadingIndicator), 500);
+                } catch (err) {
+                    console.error("Error initializing neural network:", err);
+                    LoadingAnimation.hide(loadingIndicator);
+                    handleVisualizationError(containerId, err);
+                }
+            });
+        } else {
+            window.neuralNetworkVis = new NeuralNetworkVis(containerId);
+            setTimeout(() => LoadingAnimation.hide(loadingIndicator), 500);
+        }
+    } catch (error) {
+        console.error("Error setting up neural network:", error);
+        handleVisualizationError(containerId, error);
+    }
+}
+
+// Helper to load scripts dynamically
+function loadScript(url, callback) {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = callback;
+    script.onerror = () => {
+        console.error(`Failed to load script: ${url}`);
+        callback(new Error(`Failed to load: ${url}`));
+    };
+    document.head.appendChild(script);
+}
+
+// Add initialization for counterfactual sliders
+function initCounterfactualSliders() {
+    const slidersContainer = document.getElementById('counterfactual-sliders');
+    if (!slidersContainer) return;
+    
+    // Clear existing sliders
+    slidersContainer.innerHTML = '';
+    
+    // Create sliders for each feature
+    const features = [
+        {id: 'income', name: 'Income', min: 20000, max: 200000, value: 45000, step: 5000, format: val => `$${val.toLocaleString()}`},
+        {id: 'credit-score', name: 'Credit Score', min: 300, max: 850, value: 620, step: 5, format: val => val},
+        {id: 'debt-ratio', name: 'Debt-to-Income', min: 0, max: 100, value: 35, step: 1, format: val => `${val}%`},
+        {id: 'employment', name: 'Years Employed', min: 0, max: 40, value: 5, step: 1, format: val => `${val} years`}
+    ];
+    
+    features.forEach(feature => {
+        // Create slider group
+        const sliderGroup = document.createElement('div');
+        sliderGroup.className = 'slider-group';
+        
+        // Create label with value display
+        const label = document.createElement('label');
+        label.htmlFor = feature.id;
+        label.textContent = feature.name;
+        
+        const valueDisplay = document.createElement('span');
+        valueDisplay.className = 'value-display';
+        valueDisplay.textContent = feature.format(feature.value);
+        label.appendChild(valueDisplay);
+        
+        // Create slider
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = feature.id;
+        slider.min = feature.min;
+        slider.max = feature.max;
+        slider.value = feature.value;
+        slider.step = feature.step;
+        
+        // Add event listener
+        slider.addEventListener('input', () => {
+            valueDisplay.textContent = feature.format(parseInt(slider.value));
+            updatePrediction();
+        });
+        
+        sliderGroup.appendChild(label);
+        sliderGroup.appendChild(slider);
+        slidersContainer.appendChild(sliderGroup);
+    });
+    
+    // Initial prediction update
+    updatePrediction();
+}
+
+// Update the prediction based on slider values
+function updatePrediction() {
+    // Get slider values
+    const creditScore = parseInt(document.getElementById('credit-score').value);
+    const income = parseInt(document.getElementById('income').value);
+    const debtRatio = parseInt(document.getElementById('debt-ratio').value);
+    
+    // Calculate a simple prediction
+    let probability = 0;
+    probability += (creditScore - 300) / (850 - 300) * 50; // 50% weight to credit score
+    probability += (income - 20000) / (200000 - 20000) * 30; // 30% weight to income
+    probability += (100 - debtRatio) / 100 * 20; // 20% weight to debt ratio (inverse)
+    
+    // Clamp between 0-100
+    probability = Math.min(100, Math.max(0, probability));
+    
+    // Update UI
+    const predictionValue = document.getElementById('prediction-value');
+    const predictionProbability = document.getElementById('prediction-probability');
+    const predictionFill = document.querySelector('.prediction-fill');
+    const predictionMessage = document.getElementById('counterfactual-message');
+    
+    predictionFill.style.width = `${probability}%`;
+    predictionProbability.textContent = `${Math.round(probability)}%`;
+    
+    if (probability >= 50) {
+        predictionValue.textContent = 'Loan Approved';
+        predictionMessage.textContent = probability < 70 ? 
+            "Your application is just above the approval threshold. Improving your credit score would make approval more secure." : 
+            "Your application is strong. Consider applying for a larger loan amount if needed.";
+    } else {
+        predictionValue.textContent = 'Loan Denied';
+        
+        // Generate guidance
+        let guidance = "";
+        if (creditScore < 650) guidance = `Increasing your credit score to at least 650 (currently ${creditScore})`;
+        else if (debtRatio > 40) guidance = `Reducing your debt-to-income ratio below 40% (currently ${debtRatio}%)`;
+        else if (income < 60000) guidance = `Increasing your income to at least $60,000 (currently $${income.toLocaleString()})`;
+        else guidance = "Improving multiple factors";
+        
+        predictionMessage.textContent = `${guidance} would change the prediction to "Loan Approved".`;
+    }
+}
+
+// Initialize dark theme elements
+function initDarkTheme() {
+    // Add SVG filters for glow effects
+    const filterContainer = document.createElement('div');
+    filterContainer.style.height = 0;
+    filterContainer.style.width = 0;
+    filterContainer.style.position = 'absolute';
+    filterContainer.style.overflow = 'hidden';
+    
+    filterContainer.innerHTML = `
+        <svg style="height:0; width:0; position: absolute;">
+            <defs>
+                <filter id="primary-glow" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+                    <feFlood flood-color="#00f2ff" flood-opacity="0.5" result="color"/>
+                    <feComposite in="color" in2="blur" operator="in" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                
+                <filter id="secondary-glow" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+                    <feFlood flood-color="#00ff88" flood-opacity="0.5" result="color"/>
+                    <feComposite in="color" in2="blur" operator="in" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                
+                <filter id="accent-glow" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+                    <feFlood flood-color="#ff00d4" flood-opacity="0.5" result="color"/>
+                    <feComposite in="color" in2="blur" operator="in" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+        </svg>
+    `;
+    
+    document.body.appendChild(filterContainer);
+}
+
+// Add tooltip initialization to main.js
+function initTooltips() {
+    // Create tooltip container
+    const tooltipContainer = document.createElement('div');
+    tooltipContainer.className = 'tooltip';
+    document.body.appendChild(tooltipContainer);
+    
+    // Add event listeners for elements with tooltip data
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', (e) => {
+            const tooltip = e.target.dataset.tooltip;
+            tooltipContainer.innerHTML = tooltip;
+            tooltipContainer.classList.add('visible');
+            
+            const rect = e.target.getBoundingClientRect();
+            tooltipContainer.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltipContainer.style.top = (rect.top - 10) + 'px';
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            tooltipContainer.classList.remove('visible');
+        });
+    });
+}
+
+// Add GPU acceleration for animations
+function optimizePerformance() {
+    // Apply will-change property to elements that will animate
+    document.querySelectorAll('.visualization-container').forEach(container => {
+        container.style.willChange = 'transform';
+    });
+    
+    // Apply hardware acceleration to key animations
+    document.querySelectorAll('.bar, .node').forEach(element => {
+        element.style.transform = 'translateZ(0)';
+    });
+    
+    // Cleanup will-change after animations complete to free resources
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            document.querySelectorAll('[style*="will-change"]').forEach(element => {
+                element.style.willChange = 'auto';
+            });
+        }
+    });
+}
+
+// Add a fun easter egg
+function addEasterEgg() {
+    const logo = document.querySelector('.logo');
+    if (!logo) return;
+    
+    let clickCount = 0;
+    const maxClicks = 5;
+    
+    logo.addEventListener('click', (e) => {
+        if (e.detail > 1) return; // Prevent double-click triggering multiple times
+        
+        clickCount++;
+        
+        if (clickCount === maxClicks) {
+            activateMatrixMode();
+            clickCount = 0;
+        }
+    });
+}
+
+function activateMatrixMode() {
+    // Create matrix rain effect
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '9999';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.opacity = '0';
+    canvas.style.transition = 'opacity 2s';
+    
+    document.body.appendChild(canvas);
+    
+    // Fade in
+    setTimeout(() => {
+        canvas.style.opacity = '1';
+    }, 100);
+    
+    // Matrix animation
+    const ctx = canvas.getContext('2d');
+    const columns = Math.floor(canvas.width / 20);
+    const drops = Array(columns).fill(1);
+    
+    function drawMatrix() {
+        // Add semi-transparent black background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Set text color to neon green
+        ctx.fillStyle = '#0f8';
+        ctx.font = '15px monospace';
+        
+        // For each column
+        for (let i = 0; i < drops.length; i++) {
+            // Random character
+            const text = String.fromCharCode(Math.floor(Math.random() * 94) + 33);
+            
+            // x = i * fontSize, y = value of drops[i] * fontSize
+            ctx.fillText(text, i * 20, drops[i] * 20);
+            
+            // If it's reached the bottom or randomly with 1% chance
+            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            
+            // Move down
+            drops[i]++;
+        }
+    }
+    
+    // Animation loop
+    const interval = setInterval(drawMatrix, 50);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        clearInterval(interval);
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(canvas);
+        }, 2000);
+    }, 5000);
 } 

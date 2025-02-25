@@ -66,7 +66,7 @@ class NeuralNetworkVis {
     
     setupScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0xf9fafb);
+        this.scene.background = new THREE.Color(0x121212); // Use dark background to match theme
         
         // Use WebGL2 renderer with better performance settings
         this.renderer = new THREE.WebGLRenderer({ 
@@ -185,5 +185,169 @@ class NeuralNetworkVis {
                 }
             }
         });
+    }
+
+    // Update the node materials for neon theme
+    createNodes() {
+        const layers = this.networkStructure;
+        const layerDistance = 8;
+        
+        // Clear existing nodes
+        this.nodes = [];
+        
+        for (let l = 0; l < layers.length; l++) {
+            const layerSize = layers[l];
+            const xPos = (l - (layers.length - 1) / 2) * layerDistance;
+            
+            for (let n = 0; n < layerSize; n++) {
+                const yPos = (n - (layerSize - 1) / 2) * 2;
+                
+                // Create node with neon color based on layer
+                let nodeMaterial;
+                
+                if (l === 0) {
+                    // Input layer - primary color
+                    nodeMaterial = new THREE.MeshBasicMaterial({
+                        color: 0x00f2ff,
+                        emissive: 0x00f2ff,
+                        emissiveIntensity: 0.5
+                    });
+                } else if (l === layers.length - 1) {
+                    // Output layer - accent color
+                    nodeMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xff00d4,
+                        emissive: 0xff00d4,
+                        emissiveIntensity: 0.5
+                    });
+                } else {
+                    // Hidden layers - secondary color
+                    nodeMaterial = new THREE.MeshBasicMaterial({
+                        color: 0x00ff88,
+                        emissive: 0x00ff88,
+                        emissiveIntensity: 0.5
+                    });
+                }
+                
+                const nodeGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+                
+                node.position.set(xPos, yPos, 0);
+                node.userData = { layer: l, index: n };
+                
+                this.scene.add(node);
+                this.nodes.push(node);
+            }
+        }
+    }
+
+    // Update the connection materials for neon theme
+    createConnections() {
+        // Clear existing connections
+        if (this.connections) {
+            this.connections.forEach(conn => {
+                this.scene.remove(conn);
+            });
+        }
+        this.connections = [];
+        
+        // Create connection materials with glow
+        const connectionMaterial = new THREE.LineBasicMaterial({
+            color: 0x444444,
+            transparent: true,
+            opacity: 0.3
+        });
+        
+        const activeConnectionMaterial = new THREE.LineBasicMaterial({
+            color: 0x00f2ff,
+            transparent: true,
+            opacity: 0.7
+        });
+        
+        // Connect adjacent layers
+        for (let l = 0; l < this.nodes.length; l++) {
+            const node = this.nodes[l];
+            const layer = node.userData.layer;
+            
+            if (layer < this.networkStructure.length - 1) {
+                // Connect to all nodes in next layer
+                for (let n = 0; n < this.nodes.length; n++) {
+                    const nextNode = this.nodes[n];
+                    if (nextNode.userData.layer === layer + 1) {
+                        const geometry = new THREE.BufferGeometry().setFromPoints([
+                            node.position,
+                            nextNode.position
+                        ]);
+                        
+                        const line = new THREE.Line(geometry, Math.random() > 0.8 ? activeConnectionMaterial : connectionMaterial);
+                        this.scene.add(line);
+                        this.connections.push(line);
+                    }
+                }
+            }
+        }
+    }
+
+    // Fix initialization and add missing methods
+    createNetwork() {
+        // Set network structure based on UI controls
+        const layers = parseInt(document.getElementById('nn-layers')?.value || 3);
+        const neuronsPerLayer = parseInt(document.getElementById('nn-neurons')?.value || 5);
+        
+        this.networkStructure = Array(layers).fill(neuronsPerLayer);
+        
+        // Create nodes and connections for the network
+        this.createNodes();
+        this.createConnections();
+    }
+
+    // Add missing camera setup method
+    setupCamera() {
+        const aspect = this.container.clientWidth / this.container.clientHeight;
+        this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+        this.camera.position.z = 15;
+    }
+
+    // Add missing lights setup method
+    setupLights() {
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        this.scene.add(directionalLight);
+    }
+
+    // Add missing controls setup method
+    setupControls() {
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.25;
+        this.controls.rotateSpeed = 0.5;
+    }
+
+    // Add missing event listener setup
+    setupEventListeners() {
+        this.resizeHandler = this.handleResize.bind(this);
+        window.addEventListener('resize', this.resizeHandler);
+        
+        // Add UI control listeners
+        const layersInput = document.getElementById('nn-layers');
+        if (layersInput) {
+            layersInput.addEventListener('input', this.updateVisualization.bind(this));
+        }
+        
+        const neuronsInput = document.getElementById('nn-neurons');
+        if (neuronsInput) {
+            neuronsInput.addEventListener('input', this.updateVisualization.bind(this));
+        }
+    }
+
+    // Add missing resize handler
+    handleResize() {
+        if (!this.container || !this.camera || !this.renderer) return;
+        
+        this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     }
 } 
