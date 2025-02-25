@@ -248,24 +248,21 @@ class NeuralNetworkVis {
                 
                 if (l === 0) {
                     // Input layer - primary color
-                    nodeMaterial = new THREE.MeshBasicMaterial({
+                    nodeMaterial = new THREE.MeshPhongMaterial({
                         color: 0x00f2ff,
-                        emissive: 0x00f2ff,
-                        emissiveIntensity: 0.5
+                        shininess: 30
                     });
                 } else if (l === layers.length - 1) {
                     // Output layer - accent color
-                    nodeMaterial = new THREE.MeshBasicMaterial({
+                    nodeMaterial = new THREE.MeshPhongMaterial({
                         color: 0xff00d4,
-                        emissive: 0xff00d4,
-                        emissiveIntensity: 0.5
+                        shininess: 30
                     });
                 } else {
                     // Hidden layers - secondary color
-                    nodeMaterial = new THREE.MeshBasicMaterial({
+                    nodeMaterial = new THREE.MeshPhongMaterial({
                         color: 0x00ff88,
-                        emissive: 0x00ff88,
-                        emissiveIntensity: 0.5
+                        shininess: 30
                     });
                 }
                 

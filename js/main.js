@@ -482,23 +482,13 @@ function createFallbackFeatureImportance(svg, width, height) {
 
 // Function to set up guided tours for each visualization
 function setupGuidedTours() {
-    // Feature importance tour - simplified
-    GuidedTour.createTour('feature-importance-visualization', [
-        {
-            element: '#feature-importance-visualization',
-            title: 'Feature Importance',
-            content: 'This visualization shows which features have the most influence on the model predictions.'
-        }
-    ]);
-    
-    // Neural network tour - simplified
-    GuidedTour.createTour('neural-network-visualization', [
-        {
-            element: '#neural-network-visualization',
-            title: 'Neural Network',
-            content: 'This 3D visualization shows how neural networks process information through layers of neurons.'
-        }
-    ]);
+    // TODO: Implement guided tours
+    console.log('Guided tours will be implemented soon');
+    /*
+    if (typeof GuidedTour !== 'undefined') {
+        GuidedTour.createTour('intro-visualization', introSteps);
+    }
+    */
 }
 
 // Ensure sliders are properly initialized
@@ -877,163 +867,127 @@ function activateMatrixMode() {
     }, 5000);
 }
 
-// Enhanced navigation functionality
+// Update navigation handling
 function initNavigation() {
     const navLinks = document.querySelectorAll('nav a');
-    const sections = document.querySelectorAll('section');
     
-    console.log('Navigation links:', navLinks.length);
-    console.log('Sections:', sections.length);
-    
-    // Make sure all sections except introduction are hidden initially
-    sections.forEach(section => {
-        if (section.id !== 'introduction') {
-            section.style.display = 'none';
-        } else {
-            section.classList.add('active');
-        }
-    });
-    
-    // Update active nav link based on current section
-    function updateActiveNavLink(targetId) {
-        navLinks.forEach(link => {
-            const href = link.getAttribute('href');
-            const linkTargetId = href.substring(1);
-            link.classList.toggle('active', linkTargetId === targetId);
-        });
-    }
-    
-    // Switch to a section
-    function switchToSection(targetId) {
-        console.log('Switching to section:', targetId);
-        
-        // Hide all sections
-        sections.forEach(section => {
-            section.style.display = 'none';
-            section.classList.remove('active');
-        });
-        
-        // Show target section
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-            targetSection.style.display = 'block';
-            
-            // Force reflow
-            void targetSection.offsetWidth;
-            
-            // Add active class
-            targetSection.classList.add('active');
-            
-            // Update active nav link
-            updateActiveNavLink(targetId);
-            
-            // Initialize visualization
-            initVisualizationForSection(targetId);
-        } else {
-            console.error('Target section not found:', targetId);
-        }
-    }
-    
-    // Handle nav link clicks
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const href = link.getAttribute('href');
-            const targetId = href.substring(1);
-            console.log('Nav link clicked:', targetId);
             
-            // Update URL
-            history.pushState(null, '', href);
+            // Get target section ID
+            const targetId = link.getAttribute('href').substring(1);
             
-            // Switch to section
-            switchToSection(targetId);
+            // Remove active class from all sections and links
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            
+            // Add active class to target section and link
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                link.classList.add('active');
+                
+                // Initialize visualization for the new section
+                initVisualizationForSection(targetId);
+                
+                // Update URL hash without scrolling
+                history.pushState(null, '', `#${targetId}`);
+            }
         });
     });
     
     // Handle initial load and back/forward navigation
-    window.addEventListener('popstate', () => {
-        const hash = window.location.hash;
-        const targetId = hash ? hash.substring(1) : 'introduction';
-        switchToSection(targetId);
-    });
-    
-    // Handle initial page load
-    const hash = window.location.hash;
-    const initialId = hash ? hash.substring(1) : 'introduction';
-    switchToSection(initialId);
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('load', handleHashChange);
 }
 
-// Initialize visualization for specific section
+function handleHashChange() {
+    const hash = window.location.hash.substring(1) || 'introduction';
+    const section = document.getElementById(hash);
+    const link = document.querySelector(`nav a[href="#${hash}"]`);
+    
+    if (section) {
+        // Hide all sections
+        document.querySelectorAll('section').forEach(s => {
+            s.classList.remove('active');
+        });
+        
+        // Show target section
+        section.classList.add('active');
+        
+        // Update nav links
+        document.querySelectorAll('nav a').forEach(a => {
+            a.classList.remove('active');
+        });
+        if (link) {
+            link.classList.add('active');
+        }
+        
+        // Initialize visualization
+        initVisualizationForSection(hash);
+    }
+}
+
+// Update visualization initialization
 function initVisualizationForSection(sectionId) {
     console.log('Initializing visualization for section:', sectionId);
     
-    // Map section IDs to container IDs and class names
-    const visualizationMap = {
-        'introduction': {
-            containerId: 'intro-visualization',
-            className: 'IntroAnimation'
-        },
-        'neural-networks': {
-            containerId: 'neural-network-visualization',
-            className: 'NeuralNetworkVis'
-        },
-        'feature-importance': {
-            containerId: 'feature-importance-visualization',
-            className: 'FeatureImportanceVis'
-        },
-        'local-explanations': {
-            containerId: 'local-explanations-visualization',
-            className: 'LocalExplanationsVis'
-        },
-        'counterfactuals': {
-            containerId: 'counterfactuals-visualization',
-            className: 'CounterfactualsVis'
+    // Clean up existing visualization
+    if (window.currentVisualization) {
+        if (typeof window.currentVisualization.dispose === 'function') {
+            window.currentVisualization.dispose();
         }
+        window.currentVisualization = null;
+    }
+    
+    // Get container ID based on section
+    const containerMap = {
+        'introduction': 'intro-visualization',
+        'neural-networks': 'neural-network-visualization',
+        'feature-importance': 'feature-importance-visualization',
+        'local-explanations': 'local-explanations-visualization',
+        'counterfactuals': 'counterfactuals-visualization'
     };
     
-    const sectionConfig = visualizationMap[sectionId];
-    if (!sectionConfig) {
-        console.error('No configuration for section:', sectionId);
-        return;
-    }
-    
-    const { containerId, className } = sectionConfig;
-    
-    // Get container element
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.error('Container not found:', containerId);
-        return;
-    }
+    const containerId = containerMap[sectionId];
+    if (!containerId) return;
     
     // Show loading indicator
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
     const loadingIndicator = LoadingAnimation.show(containerId);
     
     try {
-        // Cleanup existing visualization
-        if (window.currentVisualization) {
-            if (typeof window.currentVisualization.dispose === 'function') {
-                window.currentVisualization.dispose();
-            }
-            window.currentVisualization = null;
+        // Initialize appropriate visualization
+        switch(sectionId) {
+            case 'introduction':
+                window.currentVisualization = new IntroAnimation(containerId);
+                break;
+            case 'neural-networks':
+                window.currentVisualization = new NeuralNetworkVis(containerId);
+                break;
+            case 'feature-importance':
+                window.currentVisualization = new FeatureImportanceVis(containerId);
+                break;
+            case 'local-explanations':
+                window.currentVisualization = new LocalExplanationsVis(containerId);
+                break;
+            case 'counterfactuals':
+                window.currentVisualization = new CounterfactualsVis(containerId);
+                break;
         }
-        
-        // Check if the class exists
-        if (typeof window[className] !== 'function') {
-            throw new Error(`Class ${className} not found. Check script loading.`);
-        }
-        
-        // Create visualization instance
-        window.currentVisualization = new window[className](containerId);
-        console.log(`Visualization ${className} initialized successfully`);
-        
     } catch (error) {
-        console.error('Failed to initialize visualization:', error);
+        console.error('Error initializing visualization:', error);
         container.innerHTML = `
             <div class="error-message">
                 <h4>Visualization Error</h4>
                 <p>${error.message || 'Failed to load visualization'}</p>
-                <button onclick="retryVisualization('${containerId}')">Retry</button>
             </div>
         `;
     } finally {

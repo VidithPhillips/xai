@@ -1,3 +1,15 @@
+class CounterfactualsVis {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) {
+            console.error(`Container #${containerId} not found`);
+            return;
+        }
+        this.createChart();
+    }
+    // ... rest of the class implementation
+}
+
 // Add a proper dispose method
 dispose() {
     // Cancel any running animations
