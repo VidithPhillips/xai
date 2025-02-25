@@ -140,6 +140,13 @@ function initVisualizationForSection(sectionId) {
         return Promise.reject(new Error('Container not found'));
     }
 
+    // Ensure container has proper styling
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.width = '100%';
+    container.style.minHeight = '450px';
+    
     // Show loading animation
     const loadingIndicator = document.createElement('div');
     loadingIndicator.className = 'loading-indicator';
@@ -149,12 +156,11 @@ function initVisualizationForSection(sectionId) {
         </svg>
     `;
     container.appendChild(loadingIndicator);
-
-    // Force container to be visible and have dimensions
-    container.style.display = 'block';
     
     // Force layout recalculation
     container.offsetHeight;
+    
+    console.log(`Container #${containerId} dimensions:`, container.clientWidth, 'x', container.clientHeight);
     
     return new Promise((resolve, reject) => {
         try {
@@ -416,6 +422,31 @@ function debugGlobalObjects() {
     console.log('LoadingAnimation:', typeof window.LoadingAnimation);
 }
 
+// Add this function to check and fix container dimensions
+function checkAndFixContainerDimensions() {
+    const containers = [
+        'intro-visualization',
+        'neural-network-visualization',
+        'feature-importance-visualization',
+        'local-explanations-visualization',
+        'counterfactuals-visualization'
+    ];
+    
+    containers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            // Ensure container has proper styling
+            container.style.display = 'flex';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            container.style.width = '100%';
+            container.style.minHeight = '450px';
+            
+            console.log(`Fixed container #${containerId} dimensions:`, container.clientWidth, 'x', container.clientHeight);
+        }
+    });
+}
+
 // Main initialization
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
@@ -468,6 +499,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Initialize theme toggle
         initThemeToggle();
+        
+        // Check and fix container dimensions
+        checkAndFixContainerDimensions();
         
     } catch (error) {
         console.error("Error initializing application:", error);

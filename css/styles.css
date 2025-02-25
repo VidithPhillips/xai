@@ -192,15 +192,18 @@ nav a.active {
 .section-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--spacing-xl) var(--spacing-xl);
+    padding: var(--spacing-xl);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Content area styling */
 .content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(300px, 1fr) minmax(400px, 1fr);
     gap: var(--spacing-2xl);
     align-items: start;
+    width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -211,6 +214,8 @@ nav a.active {
 
 .content-text {
     padding-right: var(--spacing-xl);
+    width: 100%;
+    max-width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -415,6 +420,7 @@ button, .method-btn, .cta-button {
     justify-content: center;
     align-items: center;
     width: 100%;
+    margin: 0 auto;
 }
 
 #intro-visualization,
@@ -778,14 +784,12 @@ pre code {
 .visualization-container svg {
     width: 100%;
     height: 100%;
-    max-height: 400px;
 }
 
 /* Ensure 3D visualizations have proper dimensions */
 .visualization-container canvas {
     width: 100% !important;
     height: 100% !important;
-    max-height: 400px;
 }
 
 /* Add proper spacing to controls */
@@ -1096,4 +1100,18 @@ footer {
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+/* Fix main content area */
+main {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Fix section display */
+section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
 } 
