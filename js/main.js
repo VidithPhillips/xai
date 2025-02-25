@@ -3,6 +3,41 @@
  * This file initializes all visualizations and UI components
  */
 
+// Add this at the beginning of main.js
+if (typeof window.LoadingAnimation === 'undefined') {
+    window.LoadingAnimation = {
+        show: function(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return null;
+            
+            const loader = document.createElement('div');
+            loader.className = 'loading-indicator';
+            loader.innerHTML = '<div class="spinner"></div><p>Loading...</p>';
+            loader.style.position = 'absolute';
+            loader.style.top = '0';
+            loader.style.left = '0';
+            loader.style.width = '100%';
+            loader.style.height = '100%';
+            loader.style.display = 'flex';
+            loader.style.flexDirection = 'column';
+            loader.style.alignItems = 'center';
+            loader.style.justifyContent = 'center';
+            loader.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            loader.style.color = 'white';
+            loader.style.zIndex = '100';
+            
+            container.appendChild(loader);
+            return loader;
+        },
+        
+        hide: function(loader) {
+            if (loader && loader.parentNode) {
+                loader.parentNode.removeChild(loader);
+            }
+        }
+    };
+}
+
 // Temporary placeholder for GuidedTour until implementation is complete
 window.GuidedTour = {
   createTour: function(containerId, steps) {
@@ -252,8 +287,12 @@ function initVisualizationWithContainer(containerId, initFunction) {
         container.style.minHeight = '400px';  // Set minimum height
     }
     
-    // Show loading state
-    const loadingIndicator = LoadingAnimation.show(containerId);
+    // Use LoadingAnimation if it exists, otherwise proceed without it
+    let loadingIndicator = null;
+    if (typeof window.LoadingAnimation !== 'undefined' && 
+        typeof window.LoadingAnimation.show === 'function') {
+        loadingIndicator = window.LoadingAnimation.show(containerId);
+    }
     
     try {
         // Clear container safely
@@ -265,8 +304,9 @@ function initVisualizationWithContainer(containerId, initFunction) {
         const visualization = initFunction();
         container.visualization = visualization;
         
-        if (loadingIndicator) {
-            LoadingAnimation.hide(loadingIndicator);
+        if (loadingIndicator && typeof window.LoadingAnimation !== 'undefined' && 
+            typeof window.LoadingAnimation.hide === 'function') {
+            window.LoadingAnimation.hide(loadingIndicator);
         }
     } catch (error) {
         console.error(`Error initializing visualization ${containerId}:`, error);
