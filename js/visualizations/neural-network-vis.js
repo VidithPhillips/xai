@@ -2,14 +2,18 @@
 class NeuralNetworkVis {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
-        if (!this.container) return;
+        if (!this.container) {
+            console.error(`Container #${containerId} not found`);
+            return;
+        }
         
-        // Get container dimensions
-        const rect = this.container.getBoundingClientRect();
+        // Set default dimensions if container dimensions are zero
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 400;
         
-        // Set minimum dimensions
-        this.width = Math.max(rect.width, 400);
-        this.height = Math.max(rect.height, 300);
+        // These should be assigned to instance properties
+        this.width = width;
+        this.height = height;
         
         // Check WebGL support
         if (!this.isWebGLSupported()) {
@@ -77,15 +81,12 @@ class NeuralNetworkVis {
     
     setupScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x121212); // Use dark background to match theme
+        this.scene.background = new THREE.Color(0x111111);
         
-        // Use WebGL2 renderer with better performance settings
-        this.renderer = new THREE.WebGLRenderer({ 
-            antialias: true,
-            alpha: true
-        });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(this.width, this.height);
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        
         this.container.appendChild(this.renderer.domElement);
     }
     

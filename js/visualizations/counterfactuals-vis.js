@@ -5,6 +5,10 @@ class CounterfactualsVis {
             console.error(`Container #${containerId} not found`);
             return;
         }
+        
+        console.log(`Creating CounterfactualsVis in container:`, containerId);
+        console.log(`Container dimensions:`, this.container.clientWidth, 'x', this.container.clientHeight);
+        
         this.createChart();
     }
     

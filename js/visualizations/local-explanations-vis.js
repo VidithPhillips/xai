@@ -5,6 +5,10 @@ class LocalExplanationsVis {
             console.error(`Container #${containerId} not found`);
             return;
         }
+        
+        console.log(`Creating LocalExplanationsVis in container:`, containerId);
+        console.log(`Container dimensions:`, this.container.clientWidth, 'x', this.container.clientHeight);
+        
         this.createChart();
     }
 
