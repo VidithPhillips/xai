@@ -1015,7 +1015,7 @@ function handleHashChange() {
     }
 }
 
-// Fix the initVisualizationForSection function
+// Simplified visualization initialization function
 function initVisualizationForSection(sectionId) {
     console.log(`Initializing visualization for section: ${sectionId}`);
     
@@ -1060,60 +1060,78 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    console.log(`Container #${containerId} dimensions before init:`, 
-        container.clientWidth, 'x', container.clientHeight);
+    // Always use a wrapper with fixed dimensions
+    container.innerHTML = '';
+    const wrapper = document.createElement('div');
+    wrapper.id = `${containerId}-wrapper`;
+    wrapper.style.width = '800px';
+    wrapper.style.height = '400px';
+    wrapper.style.position = 'relative';
+    container.appendChild(wrapper);
     
-    // Force dimensions if they're zero
-    if (container.clientWidth === 0 || container.clientHeight === 0) {
-        console.log(`Forcing dimensions for container #${containerId}`);
-        container.style.width = '100%';
-        container.style.minHeight = '400px';
-        container.style.display = 'block';
-        
-        // Force layout recalculation
-        container.offsetHeight;
-        
-        console.log(`Container #${containerId} dimensions after forcing:`, 
-            container.clientWidth, 'x', container.clientHeight);
+    // Use the wrapper for visualization
+    const wrapperId = wrapper.id;
+    
+    // Use LoadingAnimation if it exists
+    let loadingIndicator = null;
+    if (typeof window.LoadingAnimation !== 'undefined') {
+        loadingIndicator = window.LoadingAnimation.show(wrapperId);
     }
     
-    // Create the visualization
-    console.log(`Creating visualization for section: ${sectionId} in container: ${containerId}`);
-    
     try {
+        console.log('Creating visualization for section:', sectionId, 'in container:', wrapperId);
+        let visualizationCreated = false;
+        
         switch (sectionId) {
             case 'introduction':
-                window.introVis = new IntroAnimation(containerId);
+                if (typeof IntroAnimation === 'function') {
+                    window.currentVisualization = new IntroAnimation(wrapperId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'neural-networks':
-                window.neuralNetworksVis = new NeuralNetworkVis(containerId);
+                if (typeof NeuralNetworkVis === 'function') {
+                    window.currentVisualization = new NeuralNetworkVis(wrapperId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'feature-importance':
-                window.featureImportanceVis = new FeatureImportanceVis(containerId);
+                if (typeof FeatureImportanceVis === 'function') {
+                    window.currentVisualization = new FeatureImportanceVis(wrapperId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'local-explanations':
-                window.localExplanationsVis = new LocalExplanationsVis(containerId);
+                if (typeof LocalExplanationsVis === 'function') {
+                    window.currentVisualization = new LocalExplanationsVis(wrapperId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'counterfactuals':
-                window.counterfactualsVis = new CounterfactualsVis(containerId);
+                if (typeof CounterfactualsVis === 'function') {
+                    window.currentVisualization = new CounterfactualsVis(wrapperId);
+                    visualizationCreated = true;
+                }
                 break;
             default:
-                console.error(`Unknown section ID: ${sectionId}`);
-                return;
+                console.error('Unknown section ID:', sectionId);
+        }
+        
+        if (!visualizationCreated) {
+            console.warn(`Visualization class for ${sectionId} not found, using fallback`);
+            createFallbackVisualization(wrapperId, `${sectionId} Visualization (Fallback)`);
+        } else {
+            console.log('Visualization created successfully');
         }
         console.log("Visualization created successfully");
     } catch (error) {
-        console.error(`Error creating visualization for ${sectionId}:`, error);
-        if (window.ErrorHandler && typeof ErrorHandler.showErrorNotification === 'function') {
-            ErrorHandler.showErrorNotification(`Failed to create visualization for ${sectionId}`);
-        } else {
-            console.error(`Failed to create visualization for ${sectionId}: ${error.message}`);
-            
-            // Create a simple error message in the container
-            container.innerHTML = `
-                <div style="color: #ef4444; padding: 20px; text-align: center;">
-                    <h3>Visualization Error</h3>
-                    <p>${error.message || 'Failed to create visualization'}</p>
+        console.error('Error initializing visualization:', error);
+        const wrapperElement = document.getElementById(wrapperId);
+        if (wrapperElement) {
+            wrapperElement.innerHTML = `
+                <div class="error-message">
+                    <h4>Visualization Error</h4>
+                    <p>${error.message || 'Failed to load visualization'}</p>
                 </div>
             `;
         }
@@ -1215,14 +1233,6 @@ function initializeAllVisualizations() {
         'counterfactuals'
     ];
     
-    const containerMap = {
-        'introduction': 'intro-visualization',
-        'neural-networks': 'neural-network-visualization',
-        'feature-importance': 'feature-importance-visualization',
-        'local-explanations': 'local-explanations-visualization',
-        'counterfactuals': 'counterfactuals-visualization'
-    };
-    
     // Make all sections temporarily visible
     const originalDisplayStates = {};
     sections.forEach(sectionId => {
@@ -1233,46 +1243,25 @@ function initializeAllVisualizations() {
         }
     });
     
-    // Force layout recalculation
-    document.body.offsetHeight;
+    // Initialize visualizations
+    sections.forEach(sectionId => {
+        initVisualizationForSection(sectionId);
+    });
     
-    // Force all containers to have dimensions
-    Object.values(containerMap).forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.style.display = 'block';
-            container.style.width = '100%';
-            container.style.minHeight = '400px';
-            
-            // Force layout recalculation
-            container.offsetHeight;
-            
-            console.log(`Forced container #${containerId} dimensions:`, 
-                container.clientWidth, 'x', container.clientHeight);
+    // Restore original display states
+    sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = originalDisplayStates[sectionId] || 'none';
         }
     });
     
-    // Initialize visualizations with a slight delay to ensure dimensions are applied
-    setTimeout(() => {
-        sections.forEach(sectionId => {
-            initVisualizationForSection(sectionId);
-        });
-        
-        // Restore original display states
-        sections.forEach(sectionId => {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.style.display = originalDisplayStates[sectionId] || 'none';
-            }
-        });
-        
-        // Show the active section
-        const activeSection = window.location.hash.substring(1) || 'introduction';
-        const section = document.getElementById(activeSection);
-        if (section) {
-            section.style.display = 'block';
-        }
-    }, 100);
+    // Show the active section
+    const activeSection = window.location.hash.substring(1) || 'introduction';
+    const section = document.getElementById(activeSection);
+    if (section) {
+        section.style.display = 'block';
+    }
 }
 
 // Add this comprehensive debug function

@@ -113,6 +113,13 @@ class NeuralNetworkVis {
     }
     
     updateVisualization() {
+        // Check if we're using the fallback 2D visualization
+        if (!this.scene) {
+            console.log('Using 2D fallback, recreating visualization');
+            this.createFallback2DNetwork();
+            return;
+        }
+        
         // Clean up old network
         this.cleanupNetwork();
         
@@ -121,6 +128,12 @@ class NeuralNetworkVis {
     }
     
     cleanupNetwork() {
+        // Check if scene exists before trying to access its children
+        if (!this.scene) {
+            console.warn('Scene is not initialized');
+            return;
+        }
+        
         // Remove all neurons and connections from scene
         this.scene.children.forEach(child => {
             if (child.type === 'Mesh' || child.type === 'Line') {
