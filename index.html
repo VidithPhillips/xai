@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XAI Explorer</title>
+    <title>XAI Explorer - Interactive Explainable AI Learning Platform</title>
+    <meta name="description" content="An interactive platform to learn about Explainable AI concepts and techniques">
+    <meta name="author" content="Vidith Phillips">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
     <!-- External libraries -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -35,7 +40,15 @@
 </head>
 <body>
     <header>
-        <div class="logo">XAI Explorer</div>
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M8 12h8"></path>
+                <path d="M12 8V7"></path>
+            </svg>
+            XAI Explorer
+        </div>
         <nav>
             <a href="#introduction">Introduction</a>
             <a href="#neural-networks">Neural Networks</a>
@@ -43,14 +56,48 @@
             <a href="#local-explanations">Local Explanations</a>
             <a href="#counterfactuals">Counterfactuals</a>
         </nav>
+        <div class="nav-actions">
+            <button id="help-button" class="icon-button" aria-label="Help">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </button>
+            <button id="theme-toggle" class="icon-button" aria-label="Toggle theme">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <main>
         <section id="introduction" class="active">
             <div class="section-container">
                 <div class="content">
-                    <h1>Understanding AI Decisions</h1>
-                    <p>Explore how AI makes decisions and learn about different explanation methods.</p>
+                    <div class="content-text">
+                        <h1>Understanding AI Decisions</h1>
+                        <p class="lead">Artificial Intelligence systems are increasingly making important decisions in our lives, from loan approvals to medical diagnoses. But how can we trust these systems if we don't understand how they work?</p>
+                        <p><strong>Explainable AI (XAI)</strong> is a set of techniques that help humans understand and interpret predictions made by machine learning models. This understanding is crucial for:</p>
+                        <ul>
+                            <li>Building trust in AI systems</li>
+                            <li>Identifying and correcting biases</li>
+                            <li>Meeting regulatory requirements</li>
+                            <li>Improving model performance</li>
+                        </ul>
+                        <p>Explore this interactive platform to learn about different XAI techniques and how they can help make AI more transparent and accountable.</p>
+                        
+                        <div class="cta-container">
+                            <button id="start-tour" class="primary-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                                </svg>
+                                Start Guided Tour
+                            </button>
+                        </div>
+                    </div>
                     <div id="intro-visualization" class="visualization-container"></div>
                 </div>
             </div>
@@ -59,11 +106,21 @@
         <section id="neural-networks">
             <div class="section-container">
                 <div class="content">
-                    <h2>Neural Networks</h2>
-                    <p>Understand how neural networks process information.</p>
-                    <div class="controls">
-                        <label>Layers: <input type="range" id="nn-layers" min="2" max="5" value="3"></label>
-                        <label>Neurons: <input type="range" id="nn-neurons" min="3" max="10" value="5"></label>
+                    <div class="content-text">
+                        <h2>Neural Networks</h2>
+                        <p class="lead">Neural networks are powerful machine learning models inspired by the human brain. They consist of interconnected layers of artificial neurons that process and transform data.</p>
+                        <p>While neural networks can achieve remarkable performance in tasks like image recognition and natural language processing, their complex structure makes them difficult to interpret. This is often referred to as the <strong>"black box problem"</strong>.</p>
+                        <p>Understanding the basic structure of neural networks is the first step toward making them more explainable:</p>
+                        <ul>
+                            <li><strong>Input Layer:</strong> Receives the raw data</li>
+                            <li><strong>Hidden Layers:</strong> Process and transform the data</li>
+                            <li><strong>Output Layer:</strong> Produces the final prediction</li>
+                        </ul>
+                        <p>Use the controls below to adjust the network architecture and see how information flows through the layers.</p>
+                        <div class="controls">
+                            <label>Layers: <input type="range" id="nn-layers" min="2" max="5" value="3"></label>
+                            <label>Neurons: <input type="range" id="nn-neurons" min="3" max="10" value="5"></label>
+                        </div>
                     </div>
                     <div id="neural-network-visualization" class="visualization-container"></div>
                 </div>
@@ -73,12 +130,27 @@
         <section id="feature-importance">
             <div class="section-container">
                 <div class="content">
-                    <h2>Feature Importance</h2>
-                    <p>Learn which features influence the model's decisions.</p>
-                    <div class="method-buttons">
-                        <button class="method-btn" data-method="permutation">Permutation</button>
-                        <button class="method-btn" data-method="shap">SHAP</button>
-                        <button class="method-btn" data-method="lime">LIME</button>
+                    <div class="content-text">
+                        <h2>Feature Importance</h2>
+                        <p class="lead">Feature importance techniques help us understand which input features have the most influence on a model's predictions. This is one of the most fundamental ways to explain AI decisions.</p>
+                        <p>By identifying the most important features, we can:</p>
+                        <ul>
+                            <li>Gain insights into the model's decision-making process</li>
+                            <li>Verify that the model is using relevant information</li>
+                            <li>Detect potential biases or unwanted correlations</li>
+                            <li>Simplify models by removing unimportant features</li>
+                        </ul>
+                        <p>Explore different methods for calculating feature importance:</p>
+                        <ul>
+                            <li><strong>Permutation Importance:</strong> Measures how model performance decreases when a feature is randomly shuffled</li>
+                            <li><strong>SHAP (SHapley Additive exPlanations):</strong> Uses game theory to assign importance values to each feature</li>
+                            <li><strong>LIME (Local Interpretable Model-agnostic Explanations):</strong> Creates a simpler, interpretable model around a specific prediction</li>
+                        </ul>
+                        <div class="method-buttons">
+                            <button class="method-btn" data-method="permutation">Permutation</button>
+                            <button class="method-btn" data-method="shap">SHAP</button>
+                            <button class="method-btn" data-method="lime">LIME</button>
+                        </div>
                     </div>
                     <div id="feature-importance-visualization" class="visualization-container"></div>
                 </div>
@@ -88,12 +160,27 @@
         <section id="local-explanations">
             <div class="section-container">
                 <div class="content">
-                    <h2>Local Explanations</h2>
-                    <p>Explore how specific predictions are made.</p>
-                    <div class="instance-buttons">
-                        <button class="instance-btn" data-instance="1">Instance 1</button>
-                        <button class="instance-btn" data-instance="2">Instance 2</button>
-                        <button class="instance-btn" data-instance="3">Instance 3</button>
+                    <div class="content-text">
+                        <h2>Local Explanations</h2>
+                        <p class="lead">While global explanations help us understand a model's behavior across all predictions, local explanations focus on explaining individual predictions.</p>
+                        <p>Local explanations answer questions like:</p>
+                        <ul>
+                            <li>"Why was this specific loan application rejected?"</li>
+                            <li>"Why was this patient diagnosed with this condition?"</li>
+                            <li>"Why was this transaction flagged as fraudulent?"</li>
+                        </ul>
+                        <p>These explanations are crucial for:</p>
+                        <ul>
+                            <li>Providing transparency to individuals affected by AI decisions</li>
+                            <li>Helping domain experts verify specific predictions</li>
+                            <li>Identifying edge cases where the model might be making mistakes</li>
+                        </ul>
+                        <p>Select different instances to see how local explanations work:</p>
+                        <div class="instance-buttons">
+                            <button class="instance-btn" data-instance="1">Instance 1</button>
+                            <button class="instance-btn" data-instance="2">Instance 2</button>
+                            <button class="instance-btn" data-instance="3">Instance 3</button>
+                        </div>
                     </div>
                     <div id="local-explanations-visualization" class="visualization-container"></div>
                 </div>
@@ -103,12 +190,27 @@
         <section id="counterfactuals">
             <div class="section-container">
                 <div class="content">
-                    <h2>Counterfactuals</h2>
-                    <p>Discover what changes would lead to different outcomes.</p>
-                    <div class="scenario-buttons">
-                        <button class="scenario-btn" data-scenario="1">Scenario 1</button>
-                        <button class="scenario-btn" data-scenario="2">Scenario 2</button>
-                        <button class="scenario-btn" data-scenario="3">Scenario 3</button>
+                    <div class="content-text">
+                        <h2>Counterfactuals</h2>
+                        <p class="lead">Counterfactual explanations answer the question: <em>"What would need to change to get a different outcome?"</em></p>
+                        <p>For example:</p>
+                        <ul>
+                            <li>"If your income was $5,000 higher, your loan would have been approved."</li>
+                            <li>"If you had 2 more years of credit history, you would qualify for a lower interest rate."</li>
+                        </ul>
+                        <p>Counterfactuals are particularly useful because they:</p>
+                        <ul>
+                            <li>Provide actionable insights for users</li>
+                            <li>Are intuitive and easy to understand</li>
+                            <li>Don't require revealing the full model or all features</li>
+                            <li>Can help identify the minimal changes needed for a different outcome</li>
+                        </ul>
+                        <p>Explore different scenarios to see how counterfactual explanations work:</p>
+                        <div class="scenario-buttons">
+                            <button class="scenario-btn" data-scenario="1">Loan Application</button>
+                            <button class="scenario-btn" data-scenario="2">Credit Score</button>
+                            <button class="scenario-btn" data-scenario="3">Medical Diagnosis</button>
+                        </div>
                     </div>
                     <div id="counterfactuals-visualization" class="visualization-container"></div>
                 </div>
@@ -117,7 +219,112 @@
     </main>
 
     <footer>
-        <p>XAI Explorer - An interactive learning platform for Explainable AI</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>XAI Explorer</h3>
+                <p>An interactive learning platform for Explainable AI</p>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/vidithphillips/xai" target="_blank">GitHub Repository</a></li>
+                    <li><a href="#" id="about-link">About This Project</a></li>
+                    <li><a href="#" id="references-link">References</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Created By</h4>
+                <p>Vidith Phillips</p>
+                <div class="social-links">
+                    <a href="https://github.com/vidithphillips" target="_blank" aria-label="GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 XAI Explorer. All rights reserved.</p>
+        </div>
     </footer>
+
+    <!-- Modals -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>How to Use XAI Explorer</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4>Navigation</h4>
+                <p>Use the navigation bar at the top to explore different XAI techniques.</p>
+                
+                <h4>Interacting with Visualizations</h4>
+                <p>Each section contains interactive visualizations that you can manipulate:</p>
+                <ul>
+                    <li>In the Neural Networks section, adjust the sliders to change the network architecture</li>
+                    <li>In Feature Importance, select different methods to see how they calculate importance</li>
+                    <li>In Local Explanations, choose different instances to see individual explanations</li>
+                    <li>In Counterfactuals, explore different scenarios to see how changes affect outcomes</li>
+                </ul>
+                
+                <h4>Guided Tour</h4>
+                <p>Click the "Start Guided Tour" button on the Introduction page for a step-by-step walkthrough.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>About XAI Explorer</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>XAI Explorer is an educational platform designed to help people understand Explainable AI concepts through interactive visualizations.</p>
+                
+                <p>This project was created to bridge the gap between technical AI explanations and intuitive understanding, making XAI concepts accessible to a wider audience.</p>
+                
+                <h4>Technologies Used</h4>
+                <ul>
+                    <li>D3.js for data visualizations</li>
+                    <li>Three.js for 3D neural network visualization</li>
+                    <li>Vanilla JavaScript for interactivity</li>
+                </ul>
+                
+                <h4>Acknowledgements</h4>
+                <p>Special thanks to the open-source community and researchers advancing the field of Explainable AI.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="references-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>References & Further Reading</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4>Books</h4>
+                <ul>
+                    <li>Molnar, C. (2020). <a href="https://christophm.github.io/interpretable-ml-book/" target="_blank">Interpretable Machine Learning</a></li>
+                    <li>Barredo Arrieta, A. et al. (2020). Explainable Artificial Intelligence (XAI): Concepts, Taxonomies, Opportunities and Challenges toward Responsible AI</li>
+                </ul>
+                
+                <h4>Papers</h4>
+                <ul>
+                    <li>Ribeiro, M. T., Singh, S., & Guestrin, C. (2016). <a href="https://arxiv.org/abs/1602.04938" target="_blank">"Why Should I Trust You?": Explaining the Predictions of Any Classifier</a></li>
+                    <li>Lundberg, S. M., & Lee, S. I. (2017). <a href="https://arxiv.org/abs/1705.07874" target="_blank">A Unified Approach to Interpreting Model Predictions</a></li>
+                </ul>
+                
+                <h4>Online Resources</h4>
+                <ul>
+                    <li><a href="https://pair.withgoogle.com/explorables/" target="_blank">Google PAIR Explorables</a></li>
+                    <li><a href="https://distill.pub/" target="_blank">Distill.pub</a> - Machine Learning Research</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

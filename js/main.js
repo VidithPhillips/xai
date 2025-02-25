@@ -111,45 +111,71 @@ function initVisualizationForSection(sectionId) {
     const containerId = containerMap[sectionId];
     if (!containerId) {
         console.error(`No container ID mapped for section: ${sectionId}`);
-        return;
+        return Promise.reject(new Error('Invalid section ID'));
     }
     
     // Get container and ensure it's visible
     const container = document.getElementById(containerId);
     if (!container) {
         console.error(`Container #${containerId} not found`);
-        return;
+        return Promise.reject(new Error('Container not found'));
     }
+
+    // Show loading animation
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'loading-indicator';
+    loadingIndicator.innerHTML = `
+        <svg width="50" height="50" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="80, 200" stroke-dashoffset="0"></circle>
+        </svg>
+    `;
+    container.appendChild(loadingIndicator);
 
     // Force container to be visible and have dimensions
     container.style.display = 'block';
-    container.style.width = '100%';
-    container.style.minHeight = '400px';
     
     // Force layout recalculation
     container.offsetHeight;
     
-    console.log(`Container #${containerId} dimensions:`, container.clientWidth, 'x', container.clientHeight);
-
-    try {
-        if (window.visualizationRegistry) {
-            const visualization = window.visualizationRegistry.create(sectionId);
-            if (!visualization) {
-                console.warn(`Visualization creation failed for ${sectionId}, using fallback`);
+    return new Promise((resolve, reject) => {
+        try {
+            if (window.visualizationRegistry) {
+                setTimeout(() => {
+                    // Remove loading indicator
+                    if (container.contains(loadingIndicator)) {
+                        container.removeChild(loadingIndicator);
+                    }
+                    
+                    const visualization = window.visualizationRegistry.create(sectionId);
+                    if (!visualization) {
+                        console.warn(`Visualization creation failed for ${sectionId}, using fallback`);
+                        createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
+                    }
+                    resolve(visualization);
+                }, 500); // Add a small delay for the loading animation
+            } else {
+                if (container.contains(loadingIndicator)) {
+                    container.removeChild(loadingIndicator);
+                }
+                console.error("Visualization registry not found");
                 createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
+                reject(new Error("Visualization registry not found"));
             }
-        } else {
-            console.error("Visualization registry not found");
+        } catch (error) {
+            if (container.contains(loadingIndicator)) {
+                container.removeChild(loadingIndicator);
+            }
+            console.error('Error initializing visualization:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <h4>Visualization Error</h4>
+                    <p>${error.message || 'Failed to load visualization'}</p>
+                    <button onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+            reject(error);
         }
-    } catch (error) {
-        console.error('Error initializing visualization:', error);
-        container.innerHTML = `
-            <div class="error-message">
-                <h4>Visualization Error</h4>
-                <p>${error.message || 'Failed to load visualization'}</p>
-            </div>
-        `;
-    }
+    });
 }
 
 // Create a fallback visualization
@@ -159,10 +185,13 @@ function createFallbackVisualization(containerId, title) {
     
     container.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem;">
-            <h3 style="margin-bottom: 1rem; color: var(--text-light);">${title}</h3>
-            <p style="text-align: center; color: var(--text-gray);">
+            <h3 style="margin-bottom: 1rem; color: var(--neutral-200);">${title}</h3>
+            <p style="text-align: center; color: var(--neutral-400);">
                 The visualization could not be loaded. Please try refreshing the page.
             </p>
+            <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Reload Page
+            </button>
         </div>
     `;
 }
@@ -173,23 +202,163 @@ function handleNavigation(targetSectionId) {
     
     console.log(`Navigating to section: ${targetSectionId}`);
     
+    // Update active nav link
+    document.querySelectorAll('nav a').forEach(link => {
+        const isActive = link.getAttribute('href') === `#${targetSectionId}`;
+        link.classList.toggle('active', isActive);
+    });
+    
     // Hide all sections first
     document.querySelectorAll('section').forEach(section => {
-        section.style.display = 'none';
-        section.classList.remove('active');
+        if (section.id !== targetSectionId) {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        }
     });
     
     // Show and activate target section
     const targetSection = document.getElementById(targetSectionId);
     if (targetSection) {
         targetSection.style.display = 'block';
-        targetSection.classList.add('active');
         
         // Force layout recalculation
         targetSection.offsetHeight;
         
+        // Add active class after a small delay for animation
+        setTimeout(() => {
+            targetSection.classList.add('active');
+        }, 10);
+        
         // Initialize visualization for this section
-        initVisualizationForSection(targetSectionId);
+        initVisualizationForSection(targetSectionId).catch(error => {
+            console.error(`Failed to initialize visualization for ${targetSectionId}:`, error);
+        });
+    }
+}
+
+// Initialize modals
+function initModals() {
+    // Help modal
+    const helpButton = document.getElementById('help-button');
+    const helpModal = document.getElementById('help-modal');
+    
+    if (helpButton && helpModal) {
+        helpButton.addEventListener('click', () => {
+            helpModal.style.display = 'block';
+        });
+    }
+    
+    // About modal
+    const aboutLink = document.getElementById('about-link');
+    const aboutModal = document.getElementById('about-modal');
+    
+    if (aboutLink && aboutModal) {
+        aboutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            aboutModal.style.display = 'block';
+        });
+    }
+    
+    // References modal
+    const referencesLink = document.getElementById('references-link');
+    const referencesModal = document.getElementById('references-modal');
+    
+    if (referencesLink && referencesModal) {
+        referencesLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            referencesModal.style.display = 'block';
+        });
+    }
+    
+    // Close buttons
+    document.querySelectorAll('.close-modal').forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+        document.querySelectorAll('.modal').forEach(modal => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Initialize guided tour
+function initGuidedTour() {
+    const startTourButton = document.getElementById('start-tour');
+    
+    if (startTourButton) {
+        startTourButton.addEventListener('click', () => {
+            // Simple tour implementation
+            const steps = [
+                {
+                    target: 'introduction',
+                    title: 'Welcome to XAI Explorer',
+                    content: 'This platform helps you understand how AI makes decisions.',
+                    placement: 'center'
+                },
+                {
+                    target: 'neural-networks',
+                    title: 'Neural Networks',
+                    content: 'Learn about the structure of neural networks and why they are difficult to interpret.',
+                    placement: 'bottom'
+                },
+                {
+                    target: 'feature-importance',
+                    title: 'Feature Importance',
+                    content: 'Discover which features have the most influence on model predictions.',
+                    placement: 'bottom'
+                },
+                {
+                    target: 'local-explanations',
+                    title: 'Local Explanations',
+                    content: 'Understand why specific predictions were made.',
+                    placement: 'bottom'
+                },
+                {
+                    target: 'counterfactuals',
+                    title: 'Counterfactuals',
+                    content: 'Explore what changes would lead to different outcomes.',
+                    placement: 'bottom'
+                }
+            ];
+            
+            // If GuidedTour is available, use it
+            if (window.GuidedTour) {
+                window.GuidedTour.createTour('xai-explorer', steps);
+            } else {
+                // Simple fallback
+                alert('Guided tour will take you through each section of the application to help you understand XAI concepts.');
+                
+                // Navigate to the first section
+                window.location.hash = 'introduction';
+                handleNavigation('introduction');
+            }
+        });
+    }
+}
+
+// Theme toggle
+function initThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            
+            // Update icon
+            const isDarkTheme = !document.body.classList.contains('light-theme');
+            themeToggle.innerHTML = isDarkTheme 
+                ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+                : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+        });
     }
 }
 
@@ -271,6 +440,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleNavigation(sectionId);
             });
         }
+        
+        // Initialize modals
+        initModals();
+        
+        // Initialize guided tour
+        initGuidedTour();
+        
+        // Initialize theme toggle
+        initThemeToggle();
+        
     } catch (error) {
         console.error("Error initializing application:", error);
         if (window.ErrorHandler) {
