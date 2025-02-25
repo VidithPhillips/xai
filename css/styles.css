@@ -689,43 +689,36 @@ footer {
 
 /* Enhanced error message styling */
 .error-message {
-    background: rgba(30, 30, 30, 0.95);
-    border: 1px solid var(--accent-dark);
-    box-shadow: 0 0 20px rgba(255, 0, 212, 0.2), inset 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-light);
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 8px;
 }
 
-.error-message .retry-button {
-    background: var(--accent-dark);
+.error-message h4 {
+    color: #ff5555;
+    margin-bottom: 1rem;
+}
+
+.error-message button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-dark);
     color: var(--text-light);
     border: none;
-    padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: 500;
-    margin-right: 0.5rem;
-    box-shadow: var(--glow-accent);
-    transition: all 0.2s ease;
 }
 
-.error-message .retry-button:hover {
-    background: var(--accent);
-    transform: translateY(-2px);
-}
-
-.error-message .fallback-button {
-    background: transparent;
-    color: var(--text-light);
-    border: 1px solid var(--border-dark);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.error-message .fallback-button:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+.error-message button:hover {
+    background-color: var(--primary);
 }
 
 /* Fixed responsive design */

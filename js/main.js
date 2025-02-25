@@ -882,147 +882,162 @@ function initNavigation() {
     const navLinks = document.querySelectorAll('nav a');
     const sections = document.querySelectorAll('section');
     
-    // Debug log
-    console.log('Initializing navigation with:', {
-        links: navLinks.length,
-        sections: sections.length
+    console.log('Navigation links:', navLinks.length);
+    console.log('Sections:', sections.length);
+    
+    // Make sure all sections except introduction are hidden initially
+    sections.forEach(section => {
+        if (section.id !== 'introduction') {
+            section.style.display = 'none';
+        } else {
+            section.classList.add('active');
+        }
     });
-
-    function switchSection(targetId) {
+    
+    // Update active nav link based on current section
+    function updateActiveNavLink(targetId) {
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            const linkTargetId = href.substring(1);
+            link.classList.toggle('active', linkTargetId === targetId);
+        });
+    }
+    
+    // Switch to a section
+    function switchToSection(targetId) {
         console.log('Switching to section:', targetId);
         
-        // Hide all sections with logging
+        // Hide all sections
         sections.forEach(section => {
-            console.log(`Setting display:none for section: ${section.id}`);
             section.style.display = 'none';
             section.classList.remove('active');
         });
-
-        // Show target section with logging
+        
+        // Show target section
         const targetSection = document.getElementById(targetId);
         if (targetSection) {
-            console.log(`Found target section: ${targetId}`);
             targetSection.style.display = 'block';
-            setTimeout(() => {
-                console.log(`Adding active class to: ${targetId}`);
-                targetSection.classList.add('active');
-            }, 0);
-
-            // Initialize visualization with logging
-            const visContainer = targetSection.querySelector('.visualization-container');
-            if (visContainer) {
-                console.log(`Found visualization container in: ${targetId}`);
-                initVisualizationForSection(targetId);
-            } else {
-                console.log(`No visualization container found in: ${targetId}`);
-            }
+            
+            // Force reflow
+            void targetSection.offsetWidth;
+            
+            // Add active class
+            targetSection.classList.add('active');
+            
+            // Update active nav link
+            updateActiveNavLink(targetId);
+            
+            // Initialize visualization
+            initVisualizationForSection(targetId);
         } else {
-            console.error(`Target section not found: ${targetId}`);
+            console.error('Target section not found:', targetId);
         }
     }
-
-    // Handle click events
+    
+    // Handle nav link clicks
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const href = link.getAttribute('href');
-            const targetId = href.substring(1); // Remove #
+            const targetId = href.substring(1);
             console.log('Nav link clicked:', targetId);
-            switchSection(targetId);
-            // Update URL without triggering reload
+            
+            // Update URL
             history.pushState(null, '', href);
+            
+            // Switch to section
+            switchToSection(targetId);
         });
     });
-
-    // Handle initial load and back/forward
+    
+    // Handle initial load and back/forward navigation
     window.addEventListener('popstate', () => {
-        const currentId = window.location.hash.substring(1) || 'introduction';
-        switchSection(currentId);
+        const hash = window.location.hash;
+        const targetId = hash ? hash.substring(1) : 'introduction';
+        switchToSection(targetId);
     });
-
+    
     // Handle initial page load
-    const initialId = window.location.hash.substring(1) || 'introduction';
-    switchSection(initialId);
+    const hash = window.location.hash;
+    const initialId = hash ? hash.substring(1) : 'introduction';
+    switchToSection(initialId);
 }
 
 // Initialize visualization for specific section
 function initVisualizationForSection(sectionId) {
-    console.log('Initializing visualization for:', sectionId);
-
-    // Check if visualization classes are loaded
-    const requiredClasses = {
-        'introduction': 'IntroVisualization',
-        'neural-networks': 'NeuralNetworkVis',
-        'feature-importance': 'FeatureImportanceVis',
-        'local-explanations': 'LocalExplanationsVis',
-        'counterfactuals': 'CounterfactualsVis'
+    console.log('Initializing visualization for section:', sectionId);
+    
+    // Map section IDs to container IDs and class names
+    const visualizationMap = {
+        'introduction': {
+            containerId: 'intro-visualization',
+            className: 'IntroAnimation'  // Update to match the actual class name
+        },
+        'neural-networks': {
+            containerId: 'neural-network-visualization',
+            className: 'NeuralNetworkVisualization'  // Update to match the actual class name
+        },
+        'feature-importance': {
+            containerId: 'feature-importance-visualization',
+            className: 'FeatureImportanceVisualization'  // Update to match the actual class name
+        },
+        'local-explanations': {
+            containerId: 'local-explanations-visualization',
+            className: 'LocalExplanationsVisualization'  // Update to match the actual class name
+        },
+        'counterfactuals': {
+            containerId: 'counterfactuals-visualization',
+            className: 'CounterfactualsVisualization'  // Update to match the actual class name
+        }
     };
-
-    const requiredClass = requiredClasses[sectionId];
-    if (requiredClass && !window[requiredClass]) {
-        console.error(`Required class ${requiredClass} not found. Check script loading.`);
+    
+    const sectionConfig = visualizationMap[sectionId];
+    if (!sectionConfig) {
+        console.error('No configuration for section:', sectionId);
         return;
     }
-
-    // Get the correct container ID based on section
-    const containerMap = {
-        'introduction': 'intro-visualization',
-        'neural-networks': 'neural-network-visualization',
-        'feature-importance': 'feature-importance-visualization',
-        'local-explanations': 'local-explanations-visualization',
-        'counterfactuals': 'counterfactuals-visualization'
-    };
-
-    const containerId = containerMap[sectionId];
-    if (!containerId) {
-        console.error('No container mapping for section:', sectionId);
-        return;
-    }
-
+    
+    const { containerId, className } = sectionConfig;
+    
+    // Get container element
     const container = document.getElementById(containerId);
     if (!container) {
         console.error('Container not found:', containerId);
         return;
     }
-
-    // Show loading state
+    
+    // Show loading indicator
     const loadingIndicator = LoadingAnimation.show(containerId);
-
+    
     try {
-        // Cleanup any existing visualization
+        // Cleanup existing visualization
         if (window.currentVisualization) {
-            window.currentVisualization.dispose?.();
+            if (typeof window.currentVisualization.dispose === 'function') {
+                window.currentVisualization.dispose();
+            }
             window.currentVisualization = null;
         }
-
-        // Initialize based on section type
-        switch(sectionId) {
-            case 'introduction':
-                window.currentVisualization = new IntroVisualization(containerId);
-                break;
-            case 'neural-networks':
-                window.currentVisualization = new NeuralNetworkVis(containerId);
-                break;
-            case 'feature-importance':
-                window.currentVisualization = new FeatureImportanceVis(containerId);
-                break;
-            case 'local-explanations':
-                window.currentVisualization = new LocalExplanationsVis(containerId);
-                break;
-            case 'counterfactuals':
-                window.currentVisualization = new CounterfactualsVis(containerId);
-                break;
-            default:
-                console.error('Unknown section type:', sectionId);
+        
+        // Check if the class exists
+        if (typeof window[className] !== 'function') {
+            throw new Error(`Class ${className} not found. Check script loading.`);
         }
-
-        // Hide loading indicator on success
-        if (loadingIndicator) {
-            LoadingAnimation.hide(loadingIndicator);
-        }
+        
+        // Create visualization instance
+        window.currentVisualization = new window[className](containerId);
+        console.log(`Visualization ${className} initialized successfully`);
+        
     } catch (error) {
         console.error('Failed to initialize visualization:', error);
-        showVisualizationError(container, error);
+        container.innerHTML = `
+            <div class="error-message">
+                <h4>Visualization Error</h4>
+                <p>${error.message || 'Failed to load visualization'}</p>
+                <button onclick="retryVisualization('${containerId}')">Retry</button>
+            </div>
+        `;
+    } finally {
+        // Hide loading indicator
         if (loadingIndicator) {
             LoadingAnimation.hide(loadingIndicator);
         }
