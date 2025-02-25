@@ -464,7 +464,7 @@ class CounterfactualsVis {
         changeBars.append('rect')
             .attr('x', 0)
             .attr('y', d => yScale(d.id))
-            .attr('width', d => Math.max(0, xScale(d.importance) * 100)) // Ensure width is never negative
+            .attr('width', d => Math.max(0, xScale(d.importance)))
             .attr('height', yScale.bandwidth())
             .attr('fill', '#10b981')
             .attr('rx', 4)

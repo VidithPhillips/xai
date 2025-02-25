@@ -49,6 +49,20 @@ const ThreeSetup = {
     
     // Create orbit controls for camera
     createOrbitControls: function(camera, renderer) {
+        // Check if OrbitControls is available
+        if (typeof OrbitControls === 'undefined') {
+            console.warn('OrbitControls not available, using basic controls');
+            // Return a basic controls object with the same API
+            return {
+                enableDamping: false,
+                dampingFactor: 0.05,
+                rotateSpeed: 0.7,
+                zoomSpeed: 0.7,
+                panSpeed: 0.7,
+                update: function() {}
+            };
+        }
+        
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;

@@ -1,20 +1,20 @@
-# Explainable AI (XAI) Interactive Learning Platform
+# XAI Explorer
 
-An interactive 3D web application for learning about Explainable AI concepts and techniques. This platform provides visualizations and explanations to help understand how AI models work and how to make them more interpretable.
+An interactive learning platform for Explainable AI concepts.
 
 ## Features
 
-- Interactive 3D visualizations of neural networks and decision processes
-- Explanations of key XAI concepts and techniques
-- Interactive examples demonstrating LIME, SHAP, counterfactuals, and more
-- Responsive design for desktop and mobile devices
+- Interactive 3D visualizations
+- Explanations of key XAI concepts
+- Examples of feature importance, local explanations, and counterfactuals
 
 ## Technologies Used
 
-- HTML5, CSS3, JavaScript
 - Three.js for 3D visualizations
 - D3.js for data visualizations
-- Modern CSS features (Grid, Flexbox, animations)
+- Vanilla JavaScript for interactivity
+
+Updated: [Current Date and Time]
 
 ## Usage
 

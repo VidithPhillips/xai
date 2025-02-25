@@ -224,7 +224,7 @@ class FeatureImportanceVis {
         bars
             .attr('x', 0)
             .attr('y', d => yScale(d.feature))
-            .attr('width', d => Math.max(0, xScale(d.importance) * 100))
+            .attr('width', d => Math.max(0, xScale(d.importance)))
             .attr('height', yScale.bandwidth())
             .attr('fill', d => colorScale(d.importance))
             .attr('rx', 4)
