@@ -122,14 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize particle backgrounds for each section
         initParticleBackgrounds();
         
-        // Initialize visualizations with error handling
-        initVisualizations();
-        
-        // Trigger visualization for the initially active section
-        const activeSection = document.querySelector('section.active');
-        if (activeSection) {
-            UIControls.triggerVisualizationForSection(activeSection.id);
-        }
+        // Initialize all visualizations at once
+        initializeAllVisualizations();
         
         // Set up guided tours
         setupGuidedTours();
@@ -418,10 +412,12 @@ function createFallbackVisualization(containerId, text) {
     if (!container) return;
     
     container.innerHTML = `
-        <svg width="100%" height="100%" viewBox="0 0 800 400">
-            <rect width="100%" height="100%" fill="#1e1e2e" />
-            <text x="50%" y="50%" text-anchor="middle" fill="#ffffff" font-size="16px">${text}</text>
-        </svg>
+        <div style="width:100%;height:100%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;">
+            <div>
+                <h3>${text}</h3>
+                <p>This is a fallback visualization. The actual visualization could not be loaded.</p>
+            </div>
+        </div>
     `;
 }
 
@@ -895,7 +891,7 @@ function handleHashChange() {
     }
 }
 
-// Modify the visualization creation to use fallbacks if needed
+// Simplified visualization initialization function
 function initVisualizationForSection(sectionId) {
     console.log('Initializing visualization for section:', sectionId);
     
@@ -928,74 +924,56 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    // Force container to have dimensions
-    container.style.width = '100%';
-    container.style.minHeight = '400px';
-    container.style.display = 'block';
+    // Always use a wrapper with fixed dimensions
+    container.innerHTML = '';
+    const wrapper = document.createElement('div');
+    wrapper.id = `${containerId}-wrapper`;
+    wrapper.style.width = '800px';
+    wrapper.style.height = '400px';
+    wrapper.style.position = 'relative';
+    container.appendChild(wrapper);
     
-    // Force layout recalculation
-    container.offsetHeight; // This triggers a reflow
+    // Use the wrapper for visualization
+    const wrapperId = wrapper.id;
     
-    console.log('Container dimensions after forcing:', container.clientWidth, 'x', container.clientHeight);
-    
-    // If dimensions are still zero, use fixed dimensions
-    if (container.clientWidth === 0 || container.clientHeight === 0) {
-        console.warn(`Container ${containerId} still has zero dimensions, using fixed dimensions`);
-        // Create a wrapper with fixed dimensions
-        container.innerHTML = `<div id="${containerId}-wrapper" style="width:800px;height:400px;position:relative;"></div>`;
-        const wrapperId = `${containerId}-wrapper`;
-        
-        // Use the wrapper instead
-        setTimeout(() => {
-            createVisualizationInContainer(sectionId, wrapperId);
-        }, 50);
-        return;
-    }
-    
-    // Create visualization in the original container
-    createVisualizationInContainer(sectionId, containerId);
-}
-
-// Separate function to create the visualization
-function createVisualizationInContainer(sectionId, containerId) {
     // Use LoadingAnimation if it exists
     let loadingIndicator = null;
     if (typeof window.LoadingAnimation !== 'undefined') {
-        loadingIndicator = window.LoadingAnimation.show(containerId);
+        loadingIndicator = window.LoadingAnimation.show(wrapperId);
     }
     
     try {
-        console.log('Creating visualization for section:', sectionId, 'in container:', containerId);
+        console.log('Creating visualization for section:', sectionId, 'in container:', wrapperId);
         let visualizationCreated = false;
         
         switch (sectionId) {
             case 'introduction':
                 if (typeof IntroAnimation === 'function') {
-                    window.currentVisualization = new IntroAnimation(containerId);
+                    window.currentVisualization = new IntroAnimation(wrapperId);
                     visualizationCreated = true;
                 }
                 break;
             case 'neural-networks':
                 if (typeof NeuralNetworkVis === 'function') {
-                    window.currentVisualization = new NeuralNetworkVis(containerId);
+                    window.currentVisualization = new NeuralNetworkVis(wrapperId);
                     visualizationCreated = true;
                 }
                 break;
             case 'feature-importance':
                 if (typeof FeatureImportanceVis === 'function') {
-                    window.currentVisualization = new FeatureImportanceVis(containerId);
+                    window.currentVisualization = new FeatureImportanceVis(wrapperId);
                     visualizationCreated = true;
                 }
                 break;
             case 'local-explanations':
                 if (typeof LocalExplanationsVis === 'function') {
-                    window.currentVisualization = new LocalExplanationsVis(containerId);
+                    window.currentVisualization = new LocalExplanationsVis(wrapperId);
                     visualizationCreated = true;
                 }
                 break;
             case 'counterfactuals':
                 if (typeof CounterfactualsVis === 'function') {
-                    window.currentVisualization = new CounterfactualsVis(containerId);
+                    window.currentVisualization = new CounterfactualsVis(wrapperId);
                     visualizationCreated = true;
                 }
                 break;
@@ -1005,15 +983,15 @@ function createVisualizationInContainer(sectionId, containerId) {
         
         if (!visualizationCreated) {
             console.warn(`Visualization class for ${sectionId} not found, using fallback`);
-            createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
+            createFallbackVisualization(wrapperId, `${sectionId} Visualization (Fallback)`);
         } else {
             console.log('Visualization created successfully');
         }
     } catch (error) {
         console.error('Error initializing visualization:', error);
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = `
+        const wrapperElement = document.getElementById(wrapperId);
+        if (wrapperElement) {
+            wrapperElement.innerHTML = `
                 <div class="error-message">
                     <h4>Visualization Error</h4>
                     <p>${error.message || 'Failed to load visualization'}</p>
@@ -1058,10 +1036,37 @@ function handleNavigation(targetSectionId) {
     if (targetSection) {
         targetSection.classList.add('active');
         
+        // Force layout recalculation
+        document.body.offsetHeight;
+        
         // Wait a moment for the section to be rendered
         setTimeout(() => {
+            // Force container to be visible for measurement
+            const containerMap = {
+                'introduction': 'intro-visualization',
+                'neural-networks': 'neural-network-visualization',
+                'feature-importance': 'feature-importance-visualization',
+                'local-explanations': 'local-explanations-visualization',
+                'counterfactuals': 'counterfactuals-visualization'
+            };
+            
+            const containerId = containerMap[targetSectionId];
+            if (containerId) {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    // Force container to be visible and have dimensions
+                    container.style.display = 'block';
+                    container.style.width = '100%';
+                    container.style.minHeight = '400px';
+                    
+                    // Force layout recalculation
+                    container.offsetHeight;
+                }
+            }
+            
+            // Now initialize the visualization
             initVisualizationForSection(targetSectionId);
-        }, 50);
+        }, 100); // Increased timeout for better reliability
     }
 }
 
@@ -1100,4 +1105,45 @@ function debugAllContainers() {
             console.error(`Container #${id} not found`);
         }
     });
+}
+
+// Add this function to initialize all visualizations at once
+function initializeAllVisualizations() {
+    const sections = [
+        'introduction',
+        'neural-networks',
+        'feature-importance',
+        'local-explanations',
+        'counterfactuals'
+    ];
+    
+    // Make all sections temporarily visible
+    const originalDisplayStates = {};
+    sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            originalDisplayStates[sectionId] = section.style.display;
+            section.style.display = 'block';
+        }
+    });
+    
+    // Initialize visualizations
+    sections.forEach(sectionId => {
+        initVisualizationForSection(sectionId);
+    });
+    
+    // Restore original display states
+    sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = originalDisplayStates[sectionId] || 'none';
+        }
+    });
+    
+    // Show the active section
+    const activeSection = window.location.hash.substring(1) || 'introduction';
+    const section = document.getElementById(activeSection);
+    if (section) {
+        section.style.display = 'block';
+    }
 } 

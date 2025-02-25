@@ -9,7 +9,15 @@ class LocalExplanationsVis {
         console.log(`Creating LocalExplanationsVis in container:`, containerId);
         console.log(`Container dimensions:`, this.container.clientWidth, 'x', this.container.clientHeight);
         
+        // Create chart
         this.createChart();
+        
+        // Add event listeners for instance buttons
+        this.setupInstanceButtons();
+        
+        // Add resize handler
+        this.resizeHandler = this.handleResize.bind(this);
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     // Add a proper dispose method
@@ -157,6 +165,184 @@ class LocalExplanationsVis {
             { feature: "Previous Defaults", effect: -0.54 },
             { feature: "Age", effect: 0.15 }
         ];
+    }
+
+    setupInstanceButtons() {
+        // Find instance buttons
+        const instanceButtons = document.querySelectorAll('.instance-btn');
+        if (instanceButtons.length === 0) {
+            console.warn('No instance buttons found for local explanations visualization');
+            return;
+        }
+        
+        // Add click event listeners
+        instanceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                instanceButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Get instance ID from button
+                const instanceId = button.dataset.instance || '1';
+                console.log(`Switching to instance: ${instanceId}`);
+                
+                // Update visualization
+                this.updateVisualization(instanceId);
+            });
+        });
+        
+        // Set first button as active
+        if (instanceButtons[0]) {
+            instanceButtons[0].classList.add('active');
+        }
+    }
+
+    updateVisualization(instanceId) {
+        // Generate data for the selected instance
+        const data = this.getInstanceData(instanceId);
+        
+        // Update scales
+        const maxEffect = Math.max(Math.abs(d3.min(data, d => d.effect)), Math.abs(d3.max(data, d => d.effect)));
+        this.xScale.domain([-maxEffect * 1.2, maxEffect * 1.2]);
+        this.yScale.domain(data.map(d => d.feature));
+        
+        // Update bars with transition
+        const svg = this.svg;
+        const xScale = this.xScale;
+        const yScale = this.yScale;
+        
+        // Remove existing bars
+        svg.selectAll('.bar').remove();
+        
+        // Create positive bars with transition
+        svg.selectAll('.positive-bar')
+            .data(data.filter(d => d.effect >= 0))
+            .enter()
+            .append('rect')
+            .attr('class', 'bar positive-bar')
+            .attr('x', xScale(0))
+            .attr('y', d => yScale(d.feature))
+            .attr('height', yScale.bandwidth())
+            .attr('width', 0) // Start with zero width
+            .attr('fill', '#10b981')
+            .transition()
+            .duration(500)
+            .attr('width', d => Math.max(0, xScale(d.effect) - xScale(0)));
+        
+        // Create negative bars with transition
+        svg.selectAll('.negative-bar')
+            .data(data.filter(d => d.effect < 0))
+            .enter()
+            .append('rect')
+            .attr('class', 'bar negative-bar')
+            .attr('x', xScale(0))
+            .attr('y', d => yScale(d.feature))
+            .attr('height', yScale.bandwidth())
+            .attr('width', 0) // Start with zero width
+            .attr('fill', '#ef4444')
+            .transition()
+            .duration(500)
+            .attr('x', d => xScale(d.effect))
+            .attr('width', d => Math.max(0, xScale(0) - xScale(d.effect)));
+        
+        // Update feature labels
+        svg.selectAll('.feature-label').remove();
+        
+        svg.selectAll('.feature-label')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('class', 'feature-label')
+            .attr('x', -10)
+            .attr('y', d => yScale(d.feature) + yScale.bandwidth() / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'end')
+            .text(d => d.feature)
+            .style('fill', '#ffffff')
+            .style('font-size', '12px');
+        
+        // Update axes
+        svg.select('.x-axis')
+            .transition()
+            .duration(500)
+            .call(d3.axisBottom(xScale));
+        
+        svg.select('.y-axis')
+            .transition()
+            .duration(500)
+            .call(d3.axisLeft(yScale));
+        
+        // Update zero line
+        svg.select('.zero-line').remove();
+        
+        svg.append('line')
+            .attr('class', 'zero-line')
+            .attr('x1', xScale(0))
+            .attr('y1', 0)
+            .attr('x2', xScale(0))
+            .attr('y2', yScale.range()[1])
+            .attr('stroke', '#ffffff')
+            .attr('stroke-width', 1)
+            .attr('stroke-dasharray', '4');
+    }
+
+    getInstanceData(instanceId) {
+        // Generate different data based on instance ID
+        switch (instanceId) {
+            case '1':
+                return [
+                    { feature: "Income", effect: 0.65 },
+                    { feature: "Credit Score", effect: 0.42 },
+                    { feature: "Employment Years", effect: 0.28 },
+                    { feature: "Debt Ratio", effect: -0.35 },
+                    { feature: "Loan Amount", effect: -0.22 },
+                    { feature: "Previous Defaults", effect: -0.54 },
+                    { feature: "Age", effect: 0.15 }
+                ];
+            case '2':
+                return [
+                    { feature: "Credit Score", effect: 0.78 },
+                    { feature: "Previous Defaults", effect: -0.65 },
+                    { feature: "Income", effect: 0.32 },
+                    { feature: "Loan Amount", effect: -0.45 },
+                    { feature: "Debt Ratio", effect: -0.28 },
+                    { feature: "Employment Years", effect: 0.18 },
+                    { feature: "Age", effect: 0.05 }
+                ];
+            case '3':
+                return [
+                    { feature: "Previous Defaults", effect: -0.82 },
+                    { feature: "Debt Ratio", effect: -0.58 },
+                    { feature: "Credit Score", effect: 0.35 },
+                    { feature: "Income", effect: 0.25 },
+                    { feature: "Employment Years", effect: 0.15 },
+                    { feature: "Loan Amount", effect: -0.12 },
+                    { feature: "Age", effect: 0.08 }
+                ];
+            default:
+                return this.getSampleData();
+        }
+    }
+
+    handleResize() {
+        // Get container dimensions
+        const width = this.container.clientWidth || 600;
+        const height = this.container.clientHeight || 400;
+        
+        // Update SVG dimensions
+        d3.select(this.container).select('svg')
+            .attr('width', width)
+            .attr('height', height);
+        
+        // Recreate chart with new dimensions
+        this.createChart();
+        
+        // Update visualization with current instance
+        const activeButton = document.querySelector('.instance-btn.active');
+        if (activeButton) {
+            const instanceId = activeButton.dataset.instance || '1';
+            this.updateVisualization(instanceId);
+        }
     }
 }
 
