@@ -253,7 +253,7 @@ function showVisualizationError(container, error) {
         <div class="error-message">
             <h4>Visualization Error</h4>
             <p>${error.message || 'Failed to load visualization'}</p>
-            <button class="retry-button" onclick="retryVisualization('${container.id}')">
+            <button onclick="retryVisualization('${container.id}')">
                 Retry
             </button>
         </div>
@@ -264,8 +264,10 @@ function retryVisualization(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    const sectionId = container.closest('section').id;
-    initVisualizationForSection(sectionId);
+    const section = container.closest('section');
+    if (section) {
+        initVisualizationForSection(section.id);
+    }
 }
 
 // WebGL support detection
@@ -880,124 +882,150 @@ function initNavigation() {
     const navLinks = document.querySelectorAll('nav a');
     const sections = document.querySelectorAll('section');
     
-    // Hide all sections except the first one initially
-    sections.forEach(section => {
-        if (!section.id.includes('introduction')) {
-            section.style.display = 'none';
-        }
+    // Debug log
+    console.log('Initializing navigation with:', {
+        links: navLinks.length,
+        sections: sections.length
     });
 
-    function showSection(sectionId) {
-        // Hide all sections first
+    function switchSection(targetId) {
+        console.log('Switching to section:', targetId);
+        
+        // Hide all sections with logging
         sections.forEach(section => {
+            console.log(`Setting display:none for section: ${section.id}`);
             section.style.display = 'none';
             section.classList.remove('active');
         });
 
-        // Show and activate the target section
-        const targetSection = document.getElementById(sectionId);
+        // Show target section with logging
+        const targetSection = document.getElementById(targetId);
         if (targetSection) {
+            console.log(`Found target section: ${targetId}`);
             targetSection.style.display = 'block';
-            // Force reflow
-            targetSection.offsetHeight;
-            targetSection.classList.add('active');
-            
-            // Initialize visualization for this section
-            initVisualizationForSection(sectionId);
-        }
+            setTimeout(() => {
+                console.log(`Adding active class to: ${targetId}`);
+                targetSection.classList.add('active');
+            }, 0);
 
-        // Update nav links
-        navLinks.forEach(link => {
-            const isActive = link.getAttribute('href') === `#${sectionId}`;
-            link.classList.toggle('active', isActive);
-        });
+            // Initialize visualization with logging
+            const visContainer = targetSection.querySelector('.visualization-container');
+            if (visContainer) {
+                console.log(`Found visualization container in: ${targetId}`);
+                initVisualizationForSection(targetId);
+            } else {
+                console.log(`No visualization container found in: ${targetId}`);
+            }
+        } else {
+            console.error(`Target section not found: ${targetId}`);
+        }
     }
 
     // Handle click events
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const sectionId = link.getAttribute('href').substring(1); // Remove #
-            showSection(sectionId);
+            const href = link.getAttribute('href');
+            const targetId = href.substring(1); // Remove #
+            console.log('Nav link clicked:', targetId);
+            switchSection(targetId);
+            // Update URL without triggering reload
+            history.pushState(null, '', href);
         });
     });
 
-    // Handle initial load
-    const initialSection = window.location.hash.substring(1) || 'introduction';
-    showSection(initialSection);
+    // Handle initial load and back/forward
+    window.addEventListener('popstate', () => {
+        const currentId = window.location.hash.substring(1) || 'introduction';
+        switchSection(currentId);
+    });
+
+    // Handle initial page load
+    const initialId = window.location.hash.substring(1) || 'introduction';
+    switchSection(initialId);
 }
 
 // Initialize visualization for specific section
 function initVisualizationForSection(sectionId) {
-    console.log(`Initializing visualization for section: ${sectionId}`);
-    
-    // Clear any existing visualizations first
-    if (window.currentVisualization) {
-        window.currentVisualization.dispose?.();
-        window.currentVisualization = null;
+    console.log('Initializing visualization for:', sectionId);
+
+    // Check if visualization classes are loaded
+    const requiredClasses = {
+        'introduction': 'IntroVisualization',
+        'neural-networks': 'NeuralNetworkVis',
+        'feature-importance': 'FeatureImportanceVis',
+        'local-explanations': 'LocalExplanationsVis',
+        'counterfactuals': 'CounterfactualsVis'
+    };
+
+    const requiredClass = requiredClasses[sectionId];
+    if (requiredClass && !window[requiredClass]) {
+        console.error(`Required class ${requiredClass} not found. Check script loading.`);
+        return;
     }
 
-    switch(sectionId) {
-        case 'introduction':
-            const introVis = initIntroVisualization();
-            window.currentVisualization = introVis;
-            break;
-            
-        case 'neural-networks':
-            const container = document.getElementById('neural-network-visualization');
-            if (container) {
-                const loadingIndicator = LoadingAnimation.show('neural-network-visualization');
-                try {
-                    window.currentVisualization = new NeuralNetworkVis('neural-network-visualization');
-                    LoadingAnimation.hide(loadingIndicator);
-                } catch (error) {
-                    console.error('Failed to initialize neural network:', error);
-                    showVisualizationError(container, error);
-                }
-            }
-            break;
-            
-        case 'feature-importance':
-            const featureContainer = document.getElementById('feature-importance-visualization');
-            if (featureContainer) {
-                const loadingIndicator = LoadingAnimation.show('feature-importance-visualization');
-                try {
-                    window.currentVisualization = new FeatureImportanceVis('feature-importance-visualization');
-                    LoadingAnimation.hide(loadingIndicator);
-                } catch (error) {
-                    console.error('Failed to initialize feature importance:', error);
-                    showVisualizationError(featureContainer, error);
-                }
-            }
-            break;
-            
-        case 'local-explanations':
-            const localContainer = document.getElementById('local-explanations-visualization');
-            if (localContainer) {
-                const loadingIndicator = LoadingAnimation.show('local-explanations-visualization');
-                try {
-                    window.currentVisualization = new LocalExplanationsVis('local-explanations-visualization');
-                    LoadingAnimation.hide(loadingIndicator);
-                } catch (error) {
-                    console.error('Failed to initialize local explanations:', error);
-                    showVisualizationError(localContainer, error);
-                }
-            }
-            break;
-            
-        case 'counterfactuals':
-            const counterfactualsContainer = document.getElementById('counterfactuals-visualization');
-            if (counterfactualsContainer) {
-                const loadingIndicator = LoadingAnimation.show('counterfactuals-visualization');
-                try {
-                    window.currentVisualization = new CounterfactualsVis('counterfactuals-visualization');
-                    LoadingAnimation.hide(loadingIndicator);
-                } catch (error) {
-                    console.error('Failed to initialize counterfactuals:', error);
-                    showVisualizationError(counterfactualsContainer, error);
-                }
-            }
-            break;
+    // Get the correct container ID based on section
+    const containerMap = {
+        'introduction': 'intro-visualization',
+        'neural-networks': 'neural-network-visualization',
+        'feature-importance': 'feature-importance-visualization',
+        'local-explanations': 'local-explanations-visualization',
+        'counterfactuals': 'counterfactuals-visualization'
+    };
+
+    const containerId = containerMap[sectionId];
+    if (!containerId) {
+        console.error('No container mapping for section:', sectionId);
+        return;
+    }
+
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error('Container not found:', containerId);
+        return;
+    }
+
+    // Show loading state
+    const loadingIndicator = LoadingAnimation.show(containerId);
+
+    try {
+        // Cleanup any existing visualization
+        if (window.currentVisualization) {
+            window.currentVisualization.dispose?.();
+            window.currentVisualization = null;
+        }
+
+        // Initialize based on section type
+        switch(sectionId) {
+            case 'introduction':
+                window.currentVisualization = new IntroVisualization(containerId);
+                break;
+            case 'neural-networks':
+                window.currentVisualization = new NeuralNetworkVis(containerId);
+                break;
+            case 'feature-importance':
+                window.currentVisualization = new FeatureImportanceVis(containerId);
+                break;
+            case 'local-explanations':
+                window.currentVisualization = new LocalExplanationsVis(containerId);
+                break;
+            case 'counterfactuals':
+                window.currentVisualization = new CounterfactualsVis(containerId);
+                break;
+            default:
+                console.error('Unknown section type:', sectionId);
+        }
+
+        // Hide loading indicator on success
+        if (loadingIndicator) {
+            LoadingAnimation.hide(loadingIndicator);
+        }
+    } catch (error) {
+        console.error('Failed to initialize visualization:', error);
+        showVisualizationError(container, error);
+        if (loadingIndicator) {
+            LoadingAnimation.hide(loadingIndicator);
+        }
     }
 }
 
@@ -1018,5 +1046,4 @@ function initAccessibility() {
             }
         });
     });
-} 
 } 

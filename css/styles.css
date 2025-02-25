@@ -395,6 +395,7 @@ button, .method-btn, .cta-button {
     opacity: 1 !important;
     min-height: 400px;
     width: 100%;
+    margin: 2rem 0;
     background: var(--bg-dark-100);
     border: 1px solid var(--border-dark);
     border-radius: 8px;
@@ -437,9 +438,6 @@ section {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    background: var(--bg-dark);
-    min-height: calc(100vh - 80px);
-    width: 100%;
 }
 
 section.active {
