@@ -49,7 +49,7 @@ const ThreeSetup = {
     
     // Create orbit controls for camera
     createOrbitControls: function(camera, renderer) {
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.7;
