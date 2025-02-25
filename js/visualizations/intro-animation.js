@@ -1,7 +1,12 @@
 class IntroAnimation {
     constructor(containerId) {
+        console.log('IntroAnimation constructor called with container:', containerId);
         this.container = document.getElementById(containerId);
-        if (!this.container) return;
+        if (!this.container) {
+            console.error(`Container #${containerId} not found`);
+            return;
+        }
+        console.log('IntroAnimation container dimensions:', this.container.clientWidth, 'x', this.container.clientHeight);
 
         // Setup canvas
         this.canvas = document.createElement('canvas');

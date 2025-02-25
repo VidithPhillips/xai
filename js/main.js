@@ -91,8 +91,25 @@ const AppState = {
     }
 };
 
+// Add this debugging function
+function debugGlobalObjects() {
+    console.log('Checking global objects:');
+    console.log('IntroAnimation:', typeof window.IntroAnimation);
+    console.log('NeuralNetworkVis:', typeof window.NeuralNetworkVis);
+    console.log('FeatureImportanceVis:', typeof window.FeatureImportanceVis);
+    console.log('LocalExplanationsVis:', typeof window.LocalExplanationsVis);
+    console.log('CounterfactualsVis:', typeof window.CounterfactualsVis);
+    console.log('LoadingAnimation:', typeof window.LoadingAnimation);
+}
+
+// Add this at the beginning of your main.js file
+window.addEventListener('error', function(event) {
+    console.error('Global error caught:', event.error);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
+    debugGlobalObjects();
     
     try {
         // Apply dark theme initialization
@@ -323,7 +340,7 @@ function handleVisualizationError(containerId, error) {
     if (fallbackButton) {
         fallbackButton.addEventListener('click', () => {
             container.innerHTML = '';
-            createFallbackVisualization(container);
+            createFallbackVisualization(container, error.message || 'Failed to load visualization');
         });
     }
 }
@@ -385,109 +402,21 @@ function initIntroVisualization() {
         }, 1000);
     } catch (error) {
         console.error("Failed to initialize 3D visualization, falling back to 2D:", error);
-        createFallbackVisualization(container);
+        createFallbackVisualization(container, error.message || 'Failed to load visualization');
     }
 }
 
-// Enhance fallback visualization creation
-function createFallbackVisualization(container, type = 'generic') {
-    container.innerHTML = '';
+// Add this function to create a simple fallback visualization
+function createFallbackVisualization(containerId, text) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
-    const width = container.clientWidth;
-    const height = container.clientHeight || 500;
-    
-    // Add fade-in animation class
-    container.classList.add('fade-in');
-    
-    // Create SVG container
-    const svg = d3.select(container)
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height);
-        
-    switch(type) {
-        case 'neural-network':
-            createFallbackNeuralNetwork(svg, width, height);
-            break;
-        case 'feature-importance':
-            createFallbackFeatureImportance(svg, width, height);
-            break;
-        case 'local-explanations':
-            createFallbackLocalExplanation(svg, width, height);
-            break;
-        case 'counterfactuals':
-            createFallbackCounterfactual(svg, width, height);
-            break;
-        default:
-            createGenericFallback(svg, width, height);
-    }
-}
-
-// Add specific fallback function for feature importance
-function createFallbackFeatureImportance(svg, width, height) {
-    const features = [
-        { name: "Income", value: 0.8 },
-        { name: "Credit Score", value: 0.75 },
-        { name: "Debt Ratio", value: 0.6 },
-        { name: "Age", value: 0.4 },
-        { name: "Employment Years", value: 0.35 }
-    ];
-    
-    const margin = { top: 20, right: 30, bottom: 40, left: 120 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
-    
-    const g = svg.append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
-    
-    // Create scales
-    const xScale = d3.scaleLinear()
-        .domain([0, 1])
-        .range([0, innerWidth]);
-    
-    const yScale = d3.scaleBand()
-        .domain(features.map(d => d.name))
-        .range([0, innerHeight])
-        .padding(0.2);
-    
-    // Create bars with animation
-    g.selectAll('.bar')
-        .data(features)
-        .enter()
-        .append('rect')
-        .attr('class', 'bar')
-        .attr('y', d => yScale(d.name))
-        .attr('height', yScale.bandwidth())
-        .attr('x', 0)
-        .attr('width', 0)
-        .attr('fill', '#6366f1')
-        .transition()
-        .duration(1000)
-        .attr('width', d => xScale(d.value));
-    
-    // Add value labels
-    g.selectAll('.value-label')
-        .data(features)
-        .enter()
-        .append('text')
-        .attr('class', 'value-label')
-        .attr('y', d => yScale(d.name) + yScale.bandwidth() / 2)
-        .attr('x', d => xScale(d.value) + 5)
-        .attr('dy', '0.35em')
-        .attr('opacity', 0)
-        .text(d => d.value.toFixed(2))
-        .transition()
-        .delay(1000)
-        .duration(500)
-        .attr('opacity', 1);
-    
-    // Add axes
-    g.append('g')
-        .attr('transform', `translate(0, ${innerHeight})`)
-        .call(d3.axisBottom(xScale));
-    
-    g.append('g')
-        .call(d3.axisLeft(yScale));
+    container.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 400 300">
+            <rect width="100%" height="100%" fill="#1e1e2e" />
+            <text x="50%" y="50%" text-anchor="middle" fill="#ffffff" font-size="16px">${text}</text>
+        </svg>
+    `;
 }
 
 // Function to set up guided tours for each visualization
@@ -918,10 +847,14 @@ function initNavigation() {
 
 function handleHashChange() {
     const hash = window.location.hash.substring(1) || 'introduction';
+    console.log('Hash changed to:', hash);
+    
     const section = document.getElementById(hash);
     const link = document.querySelector(`nav a[href="#${hash}"]`);
     
     if (section) {
+        console.log('Found section:', section.id);
+        
         // Hide all sections
         document.querySelectorAll('section').forEach(s => {
             s.classList.remove('active');
@@ -938,14 +871,25 @@ function handleHashChange() {
             link.classList.add('active');
         }
         
-        // Wait for the section to be fully visible before initializing
+        // Debug container visibility
         setTimeout(() => {
-            initVisualizationForSection(hash);
-        }, 100); // Increased delay to ensure DOM updates
+            const container = section.querySelector('.visualization-container');
+            if (container) {
+                console.log('Section container dimensions after activation:', 
+                    container.clientWidth, 'x', container.clientHeight);
+            }
+            
+            // Initialize visualization with a delay
+            setTimeout(() => {
+                initVisualizationForSection(hash);
+            }, 100);
+        }, 10);
+    } else {
+        console.error('Section not found for hash:', hash);
     }
 }
 
-// Update visualization initialization
+// Modify the visualization creation to use fallbacks if needed
 function initVisualizationForSection(sectionId) {
     console.log('Initializing visualization for section:', sectionId);
     
@@ -987,28 +931,58 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
+    // Use LoadingAnimation if it exists, otherwise proceed without it
+    let loadingIndicator = null;
+    if (typeof window.LoadingAnimation !== 'undefined' && 
+        typeof window.LoadingAnimation.show === 'function') {
+        loadingIndicator = window.LoadingAnimation.show(containerId);
+    }
+    
     try {
         console.log('Creating visualization for section:', sectionId);
+        let visualizationCreated = false;
+        
         switch (sectionId) {
             case 'introduction':
-                window.currentVisualization = new IntroAnimation(containerId);
+                if (typeof IntroAnimation === 'function') {
+                    window.currentVisualization = new IntroAnimation(containerId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'neural-networks':
-                window.currentVisualization = new NeuralNetworkVis(containerId);
+                if (typeof NeuralNetworkVis === 'function') {
+                    window.currentVisualization = new NeuralNetworkVis(containerId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'feature-importance':
-                window.currentVisualization = new FeatureImportanceVis(containerId);
+                if (typeof FeatureImportanceVis === 'function') {
+                    window.currentVisualization = new FeatureImportanceVis(containerId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'local-explanations':
-                window.currentVisualization = new LocalExplanationsVis(containerId);
+                if (typeof LocalExplanationsVis === 'function') {
+                    window.currentVisualization = new LocalExplanationsVis(containerId);
+                    visualizationCreated = true;
+                }
                 break;
             case 'counterfactuals':
-                window.currentVisualization = new CounterfactualsVis(containerId);
+                if (typeof CounterfactualsVis === 'function') {
+                    window.currentVisualization = new CounterfactualsVis(containerId);
+                    visualizationCreated = true;
+                }
                 break;
             default:
                 console.error('Unknown section ID:', sectionId);
         }
-        console.log('Visualization created successfully');
+        
+        if (!visualizationCreated) {
+            console.warn(`Visualization class for ${sectionId} not found, using fallback`);
+            createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
+        } else {
+            console.log('Visualization created successfully');
+        }
     } catch (error) {
         console.error('Error initializing visualization:', error);
         container.innerHTML = `
@@ -1017,6 +991,12 @@ function initVisualizationForSection(sectionId) {
                 <p>${error.message || 'Failed to load visualization'}</p>
             </div>
         `;
+    } finally {
+        // Hide loading indicator if it exists
+        if (loadingIndicator && typeof window.LoadingAnimation !== 'undefined' && 
+            typeof window.LoadingAnimation.hide === 'function') {
+            window.LoadingAnimation.hide(loadingIndicator);
+        }
     }
 }
 
