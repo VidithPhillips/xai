@@ -7,27 +7,40 @@ class CounterfactualsVis {
         }
         this.createChart();
     }
-    // ... rest of the class implementation
-}
-
-// Add a proper dispose method
-dispose() {
-    // Cancel any running animations
-    if (this.animationFrameId) {
-        cancelAnimationFrame(this.animationFrameId);
+    
+    dispose() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+        window.removeEventListener('resize', this.resizeHandler);
+        document.removeEventListener('featureChange', this.handleFeatureChange);
+        if (this.svg) {
+            this.svg.remove();
+        }
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
     }
     
-    // Remove event listeners
-    window.removeEventListener('resize', this.resizeHandler);
-    document.removeEventListener('featureChange', this.handleFeatureChange);
-    
-    // Clean up D3 resources
-    if (this.svg) {
-        this.svg.remove();
-    }
-    
-    // Clear container
-    while (this.container.firstChild) {
-        this.container.removeChild(this.container.firstChild);
+    createChart() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        const margin = { top: 20, right: 30, bottom: 40, left: 150 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+        
+        this.svg = d3.select(this.container)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+        
+        // Example placeholder for Counterfactuals visualization
+        this.svg.append('text')
+            .attr('x', innerWidth / 2)
+            .attr('y', innerHeight / 2)
+            .attr('text-anchor', 'middle')
+            .text('Counterfactuals Visualization Placeholder');
     }
 } 

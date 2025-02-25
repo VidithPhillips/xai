@@ -3,6 +3,13 @@
  * This file initializes all visualizations and UI components
  */
 
+// Temporary placeholder for GuidedTour until implementation is complete
+window.GuidedTour = {
+  createTour: function(containerId, steps) {
+    console.log("Starting guided tour for", containerId, steps);
+  }
+};
+
 // Global visualization instances
 window.neuralNetworkVis = null;
 window.featureImportanceVis = null;
