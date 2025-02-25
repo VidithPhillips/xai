@@ -29,66 +29,70 @@
 
     <main>
         <section id="intro" class="active">
-            <div class="content">
-                <h1>Understanding Explainable AI</h1>
-                <p class="lead">Explore interactive visualizations to understand how AI models work and how to make them interpretable.</p>
-                
-                <div class="intro-cards">
-                    <div class="card">
-                        <h3>What is XAI?</h3>
-                        <p>Explainable AI (XAI) refers to methods and techniques that make AI systems' decisions understandable to humans.</p>
+            <div class="section-container">
+                <div class="content">
+                    <h1>Understanding Explainable AI</h1>
+                    <p class="lead">Explore interactive visualizations to understand how AI models work and how to make them interpretable.</p>
+                    
+                    <div class="intro-cards">
+                        <div class="card">
+                            <h3>What is XAI?</h3>
+                            <p>Explainable AI (XAI) refers to methods and techniques that make AI systems' decisions understandable to humans.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Why is it important?</h3>
+                            <p>As AI systems make more critical decisions, understanding how they work becomes essential for trust, fairness, and safety.</p>
+                        </div>
+                        <div class="card">
+                            <h3>How to explore</h3>
+                            <p>Navigate through the sections using the menu. Each section contains interactive 3D visualizations you can manipulate.</p>
+                        </div>
                     </div>
-                    <div class="card">
-                        <h3>Why is it important?</h3>
-                        <p>As AI systems make more critical decisions, understanding how they work becomes essential for trust, fairness, and safety.</p>
-                    </div>
-                    <div class="card">
-                        <h3>How to explore</h3>
-                        <p>Navigate through the sections using the menu. Each section contains interactive 3D visualizations you can manipulate.</p>
+                    
+                    <div class="cta-container">
+                        <button class="cta-button" id="start-exploring">Start Exploring</button>
                     </div>
                 </div>
-                
-                <div class="cta-container">
-                    <button class="cta-button" id="start-exploring">Start Exploring</button>
+                <div class="visualization-container">
+                    <div id="intro-visualization"></div>
                 </div>
-            </div>
-            <div class="visualization-container">
-                <div id="intro-visualization"></div>
             </div>
         </section>
 
         <section id="neural-networks">
-            <div class="content">
-                <h2>Neural Networks Visualization</h2>
-                <p class="lead">Understand how neural networks process information through layers of neurons.</p>
-                
-                <div class="explanation">
-                    <h3>How Neural Networks Work</h3>
-                    <p>Neural networks consist of interconnected layers of neurons that transform input data through weighted connections and activation functions.</p>
-                    <p>The "black box" nature of neural networks is one of the main challenges that XAI techniques aim to address.</p>
+            <div class="section-container">
+                <div class="content">
+                    <h2>Neural Networks Visualization</h2>
+                    <p class="lead">Understand how neural networks process information through layers of neurons.</p>
                     
-                    <div class="controls">
-                        <div class="control-group">
-                            <label for="nn-layers">Number of Layers:</label>
-                            <input type="range" id="nn-layers" min="2" max="5" value="3">
-                        </div>
-                        <div class="control-group">
-                            <label for="nn-neurons">Neurons per Layer:</label>
-                            <input type="range" id="nn-neurons" min="3" max="10" value="5">
-                        </div>
-                        <div class="control-group">
-                            <label for="nn-activation">Activation Function:</label>
-                            <select id="nn-activation">
-                                <option value="relu">ReLU</option>
-                                <option value="sigmoid">Sigmoid</option>
-                                <option value="tanh">Tanh</option>
-                            </select>
+                    <div class="explanation">
+                        <h3>How Neural Networks Work</h3>
+                        <p>Neural networks consist of interconnected layers of neurons that transform input data through weighted connections and activation functions.</p>
+                        <p>The "black box" nature of neural networks is one of the main challenges that XAI techniques aim to address.</p>
+                        
+                        <div class="controls">
+                            <div class="control-group">
+                                <label for="nn-layers">Number of Layers:</label>
+                                <input type="range" id="nn-layers" min="2" max="5" value="3">
+                            </div>
+                            <div class="control-group">
+                                <label for="nn-neurons">Neurons per Layer:</label>
+                                <input type="range" id="nn-neurons" min="3" max="10" value="5">
+                            </div>
+                            <div class="control-group">
+                                <label for="nn-activation">Activation Function:</label>
+                                <select id="nn-activation">
+                                    <option value="relu">ReLU</option>
+                                    <option value="sigmoid">Sigmoid</option>
+                                    <option value="tanh">Tanh</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="visualization-container">
-                <div id="neural-network-visualization"></div>
+                <div class="visualization-container">
+                    <div id="neural-network-visualization"></div>
+                </div>
             </div>
         </section>
 

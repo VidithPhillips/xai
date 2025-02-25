@@ -127,52 +127,62 @@ nav a:hover::after, nav a.active::after {
     width: 100%;
 }
 
-/* Simplify section styling */
+/* Reset section styling to a simpler, more reliable layout */
 section {
     display: none;
-    padding: 3rem 2rem;
-    background-color: var(--bg-primary);
     min-height: calc(100vh - 80px);
+    padding: 2rem;
+    background-color: var(--bg-primary);
 }
 
 section.active {
-    display: flex;
-    flex-direction: row;
-    animation: fadeIn 0.3s ease-in-out;
+    display: block; /* Simple block display instead of flex/grid */
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Use a container for content layout */
+.section-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
 }
 
 @media (max-width: 1024px) {
-    section.active {
+    .section-container {
         flex-direction: column;
     }
 }
 
 .content {
     flex: 1;
-    padding-right: 2rem;
     max-width: 600px;
 }
 
 .visualization-container {
     flex: 1;
-    min-height: 400px;
+    height: 500px; /* Fixed height for consistency */
     background-color: var(--bg-secondary);
     border-radius: 0.5rem;
     box-shadow: var(--shadow-md);
     position: relative;
 }
 
-@media (max-width: 1024px) {
-    .content {
-        padding-right: 0;
-        padding-bottom: 2rem;
-        max-width: 100%;
-    }
+/* Fix button styling */
+.cta-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: inline-block;
+}
+
+.cta-button:hover {
+    background-color: var(--primary-dark);
 }
 
 /* Improved intro section */
@@ -224,22 +234,7 @@ section.active {
 }
 
 /* Clean up button styling */
-.cta-button, .method-btn, button.active {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.cta-button:hover, .method-btn:hover, button.active:hover {
-    background-color: var(--primary-dark);
-}
-
-.method-btn {
+.method-btn, button.active {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
 }

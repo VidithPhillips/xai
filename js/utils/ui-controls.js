@@ -15,12 +15,6 @@ const UIControls = {
                 // Get the target section ID
                 const targetId = link.getAttribute('href').substring(1);
                 
-                // Clean up resources from the current active section
-                const currentActiveSection = document.querySelector('section.active');
-                if (currentActiveSection) {
-                    this.cleanupSection(currentActiveSection.id);
-                }
-                
                 // Hide all sections
                 document.querySelectorAll('section').forEach(section => {
                     section.classList.remove('active');
@@ -31,8 +25,13 @@ const UIControls = {
                 if (targetSection) {
                     targetSection.classList.add('active');
                     
-                    // Trigger visualization initialization for the active section
-                    this.triggerVisualizationForSection(targetId);
+                    // Force a reflow to ensure proper rendering
+                    void targetSection.offsetWidth;
+                    
+                    // Initialize visualization with delay
+                    setTimeout(() => {
+                        this.triggerVisualizationForSection(targetId);
+                    }, 100);
                 }
                 
                 // Update active nav link
@@ -48,47 +47,85 @@ const UIControls = {
     triggerVisualizationForSection: function(sectionId) {
         console.log(`Triggering visualization for section: ${sectionId}`);
         
-        // Add a small delay to ensure DOM is ready
-        setTimeout(() => {
-            // Dispatch a custom event that the visualizations can listen for
-            const event = new CustomEvent('sectionActivated', { 
-                detail: { sectionId: sectionId }
-            });
-            document.dispatchEvent(event);
-            
-            // Also directly call initialization functions if needed
-            switch(sectionId) {
-                case 'intro':
-                    if (typeof initIntroVisualization === 'function') {
-                        initIntroVisualization();
-                    }
-                    break;
-                case 'neural-networks':
-                    // Force neural network visualization to update
-                    if (window.neuralNetworkVis) {
+        // Make sure the section is visible first
+        const section = document.getElementById(sectionId);
+        if (!section || !section.classList.contains('active')) {
+            return;
+        }
+        
+        // Clear any existing loading indicators
+        const existingIndicators = document.querySelectorAll('.loading-indicator');
+        existingIndicators.forEach(indicator => {
+            if (indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        });
+        
+        switch(sectionId) {
+            case 'intro':
+                this.ensureVisualization('intro-visualization', initIntroVisualization);
+                break;
+            case 'neural-networks':
+                this.ensureVisualization('neural-network-visualization', () => {
+                    if (!window.neuralNetworkVis) {
+                        window.neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
+                    } else {
                         window.neuralNetworkVis.updateVisualization();
                     }
-                    break;
-                case 'feature-importance':
-                    // Force feature importance visualization to update
-                    if (window.featureImportanceVis) {
+                });
+                break;
+            case 'feature-importance':
+                this.ensureVisualization('feature-importance-visualization', () => {
+                    if (!window.featureImportanceVis) {
+                        window.featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
+                    } else {
                         window.featureImportanceVis.updateChart();
                     }
-                    break;
-                case 'local-explanations':
-                    // Force local explanations visualization to update
-                    if (window.localExplanationsVis) {
+                });
+                break;
+            case 'local-explanations':
+                this.ensureVisualization('local-explanations-visualization', () => {
+                    if (!window.localExplanationsVis) {
+                        window.localExplanationsVis = new LocalExplanationsVis('local-explanations-visualization');
+                    } else {
                         window.localExplanationsVis.updateChart();
                     }
-                    break;
-                case 'counterfactuals':
-                    // Force counterfactuals visualization to update
-                    if (window.counterfactualsVis) {
+                });
+                break;
+            case 'counterfactuals':
+                this.ensureVisualization('counterfactuals-visualization', () => {
+                    if (!window.counterfactualsVis) {
+                        window.counterfactualsVis = new CounterfactualsVis('counterfactuals-visualization');
+                    } else {
                         window.counterfactualsVis.updateChart();
                     }
-                    break;
+                });
+                break;
+        }
+    },
+    
+    // Ensure a visualization is properly initialized
+    ensureVisualization: function(containerId, initFunction) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Show loading indicator
+        const loadingIndicator = LoadingAnimation.show(containerId);
+        
+        // Initialize with a delay
+        setTimeout(() => {
+            try {
+                initFunction();
+                // Hide loading indicator after initialization
+                setTimeout(() => {
+                    LoadingAnimation.hide(loadingIndicator);
+                }, 500);
+            } catch (error) {
+                console.error(`Error initializing ${containerId}:`, error);
+                LoadingAnimation.hide(loadingIndicator);
+                handleVisualizationError(containerId);
             }
-        }, 50); // Small delay to ensure DOM is ready
+        }, 100);
     },
     
     // Initialize modals

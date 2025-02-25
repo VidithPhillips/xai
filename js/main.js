@@ -68,112 +68,60 @@ function initParticleBackgrounds() {
 
 // Initialize all visualizations with error handling
 function initVisualizations() {
-    // Initialize intro visualization
     try {
-        console.log("Initializing intro visualization");
-        // Only initialize if the container exists
-        if (document.getElementById('intro-visualization')) {
-            initIntroVisualization();
+        // Initialize intro visualization
+        initVisualizationWithContainer('intro-visualization', initIntroVisualization);
+        
+        // Initialize neural network visualization
+        initVisualizationWithContainer('neural-network-visualization', () => {
+            window.neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
+        });
+        
+        // Initialize feature importance visualization
+        initVisualizationWithContainer('feature-importance-visualization', () => {
+            window.featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
+        });
+        
+        // Initialize local explanations visualization
+        initVisualizationWithContainer('local-explanations-visualization', () => {
+            window.localExplanationsVis = new LocalExplanationsVis('local-explanations-visualization');
+        });
+        
+        // Initialize counterfactuals visualization
+        initVisualizationWithContainer('counterfactuals-visualization', () => {
+            window.counterfactualsVis = new CounterfactualsVis('counterfactuals-visualization');
+        });
+    } catch (error) {
+        console.error("Error initializing visualizations:", error);
+    }
+}
+
+// Helper function to initialize a visualization with proper container setup
+function initVisualizationWithContainer(containerId, initFunction) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Set explicit dimensions
+    container.style.width = '100%';
+    container.style.height = '100%';
+    
+    // Show loading indicator
+    const loadingIndicator = LoadingAnimation.show(containerId);
+    
+    // Initialize with a delay to ensure DOM is ready
+    setTimeout(() => {
+        try {
+            initFunction();
+            // Hide loading indicator after initialization
+            setTimeout(() => {
+                LoadingAnimation.hide(loadingIndicator);
+            }, 500);
+        } catch (error) {
+            console.error(`Error initializing ${containerId}:`, error);
+            LoadingAnimation.hide(loadingIndicator);
+            handleVisualizationError(containerId);
         }
-    } catch (error) {
-        console.error("Error initializing intro visualization:", error);
-        handleVisualizationError('intro-visualization');
-    }
-    
-    // Initialize neural network visualization
-    try {
-        console.log("Initializing neural network visualization");
-        // Show loading animation
-        const loadingIndicator = LoadingAnimation.show('neural-network-visualization');
-        
-        window.neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
-        
-        // Hide loading animation after a short delay
-        setTimeout(() => {
-            LoadingAnimation.hide(loadingIndicator);
-        }, 1000);
-    } catch (error) {
-        console.error("Error initializing neural network visualization:", error);
-        handleVisualizationError('neural-network-visualization');
-    }
-    
-    // Initialize feature importance visualization with loading animation
-    try {
-        console.log("Initializing feature importance visualization");
-        const loadingIndicator = LoadingAnimation.show('feature-importance-visualization');
-        
-        window.featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
-        
-        setTimeout(() => {
-            LoadingAnimation.hide(loadingIndicator);
-        }, 1000);
-    } catch (error) {
-        console.error("Error initializing feature importance visualization:", error);
-        handleVisualizationError('feature-importance-visualization');
-    }
-    
-    // Initialize local explanations visualization with loading animation
-    try {
-        console.log("Initializing local explanations visualization");
-        const loadingIndicator = LoadingAnimation.show('local-explanations-visualization');
-        
-        window.localExplanationsVis = new LocalExplanationsVis('local-explanations-visualization');
-        
-        setTimeout(() => {
-            LoadingAnimation.hide(loadingIndicator);
-        }, 1000);
-    } catch (error) {
-        console.error("Error initializing local explanations visualization:", error);
-        handleVisualizationError('local-explanations-visualization');
-    }
-    
-    // Initialize counterfactuals visualization with loading animation
-    try {
-        console.log("Initializing counterfactuals visualization");
-        const loadingIndicator = LoadingAnimation.show('counterfactuals-visualization');
-        
-        window.counterfactualsVis = new CounterfactualsVis('counterfactuals-visualization');
-        
-        setTimeout(() => {
-            LoadingAnimation.hide(loadingIndicator);
-        }, 1000);
-    } catch (error) {
-        console.error("Error initializing counterfactuals visualization:", error);
-        handleVisualizationError('counterfactuals-visualization');
-    }
-    
-    // Listen for section activation events
-    document.addEventListener('sectionActivated', (event) => {
-        const sectionId = event.detail.sectionId;
-        console.log(`Section activated: ${sectionId}`);
-        
-        // Force visualization update for the activated section
-        switch(sectionId) {
-            case 'intro':
-                // Intro visualization is already handled in initIntroVisualization
-                break;
-            case 'neural-networks':
-                if (window.neuralNetworkVis) {
-                    window.neuralNetworkVis.updateVisualization();
-                }
-                break;
-            case 'feature-importance':
-                if (window.featureImportanceVis) {
-                    window.featureImportanceVis.updateChart();
-                }
-                break;
-            case 'local-explanations':
-                if (window.localExplanationsVis) {
-                    window.localExplanationsVis.updateChart();
-                }
-                break;
-            case 'counterfactuals':
-                if (window.counterfactualsVis) {
-                    window.counterfactualsVis.updateChart();
-                }
-                break;
-        }
-    });
+    }, 100);
 }
 
 // Handle visualization errors
