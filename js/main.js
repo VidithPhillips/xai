@@ -94,6 +94,25 @@ const AppState = {
 // Global error handler
 window.addEventListener('error', function(event) {
     console.error('Global error caught:', event.error);
+    // Show error notification to user
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'error-notification';
+    errorContainer.innerHTML = `
+        <div class="error-content">
+            <h3>Error Detected</h3>
+            <p>Something went wrong. Please try refreshing the page.</p>
+            <p class="error-details">${event.error?.message || 'Unknown error'}</p>
+            <button onclick="location.reload()">Reload Page</button>
+        </div>
+    `;
+    document.body.appendChild(errorContainer);
+    
+    // Remove after 10 seconds
+    setTimeout(() => {
+        if (document.body.contains(errorContainer)) {
+            document.body.removeChild(errorContainer);
+        }
+    }, 10000);
 });
 
 // Initialize visualization for a specific section
