@@ -8,6 +8,30 @@ const UIControls = {
     activeSection: null,
     activeVisualizations: {},
     
+    eventListeners: new Map(),
+    
+    addTrackedEventListener(element, event, handler) {
+        if (!element) return;
+        
+        const listeners = this.eventListeners.get(element) || [];
+        listeners.push({ event, handler });
+        this.eventListeners.set(element, listeners);
+        
+        element.addEventListener(event, handler);
+    },
+    
+    removeAllTrackedEventListeners(element) {
+        if (!element) return;
+        
+        const listeners = this.eventListeners.get(element);
+        if (listeners) {
+            listeners.forEach(({ event, handler }) => {
+                element.removeEventListener(event, handler);
+            });
+            this.eventListeners.delete(element);
+        }
+    },
+    
     // Initialize navigation with proper cleanup
     initNavigation: function() {
         const navLinks = document.querySelectorAll('nav a');

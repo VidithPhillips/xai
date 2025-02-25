@@ -40,7 +40,7 @@ function cleanupVisualization(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // Cleanup existing visualization
+    // Use the visualization's own dispose method
     const visualization = container.visualization;
     if (visualization && typeof visualization.dispose === 'function') {
         visualization.dispose();
@@ -971,23 +971,23 @@ function initVisualizationForSection(sectionId) {
     const visualizationMap = {
         'introduction': {
             containerId: 'intro-visualization',
-            className: 'IntroAnimation'  // Update to match the actual class name
+            className: 'IntroAnimation'
         },
         'neural-networks': {
             containerId: 'neural-network-visualization',
-            className: 'NeuralNetworkVisualization'  // Update to match the actual class name
+            className: 'NeuralNetworkVis'
         },
         'feature-importance': {
             containerId: 'feature-importance-visualization',
-            className: 'FeatureImportanceVisualization'  // Update to match the actual class name
+            className: 'FeatureImportanceVis'
         },
         'local-explanations': {
             containerId: 'local-explanations-visualization',
-            className: 'LocalExplanationsVisualization'  // Update to match the actual class name
+            className: 'LocalExplanationsVis'
         },
         'counterfactuals': {
             containerId: 'counterfactuals-visualization',
-            className: 'CounterfactualsVisualization'  // Update to match the actual class name
+            className: 'CounterfactualsVis'
         }
     };
     
