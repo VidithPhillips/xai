@@ -976,7 +976,7 @@ function initVisualizationForSection(sectionId) {
     // Show loading indicator
     const loadingIndicator = LoadingAnimation.show(containerId);
     try {
-        switch(sectionId) {
+        switch (sectionId) {
             case 'introduction':
                 window.currentVisualization = new IntroAnimation(containerId);
                 break;
@@ -1002,9 +1002,7 @@ function initVisualizationForSection(sectionId) {
             </div>
         `;
     } finally {
-        if (loadingIndicator) {
-            LoadingAnimation.hide(loadingIndicator);
-        }
+        if (loadingIndicator) { LoadingAnimation.hide(loadingIndicator); }
     }
 }
 
@@ -1025,4 +1023,55 @@ function initAccessibility() {
             }
         });
     });
-} 
+}
+
+function handleNavigation(targetSectionId) {
+    // Hide all sections
+    document.querySelectorAll('section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show target section
+    const targetSection = document.getElementById(targetSectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        
+        // Wait a moment for the section to be rendered
+        setTimeout(() => {
+            initVisualizationForSection(targetSectionId);
+        }, 50);
+    }
+}
+
+// Simple LoadingAnimation implementation
+const LoadingAnimation = {
+  show: function(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    
+    const loader = document.createElement('div');
+    loader.className = 'loading-indicator';
+    loader.innerHTML = '<div class="spinner"></div><p>Loading...</p>';
+    loader.style.position = 'absolute';
+    loader.style.top = '0';
+    loader.style.left = '0';
+    loader.style.width = '100%';
+    loader.style.height = '100%';
+    loader.style.display = 'flex';
+    loader.style.flexDirection = 'column';
+    loader.style.alignItems = 'center';
+    loader.style.justifyContent = 'center';
+    loader.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    loader.style.color = 'white';
+    loader.style.zIndex = '100';
+    
+    container.appendChild(loader);
+    return loader;
+  },
+  
+  hide: function(loader) {
+    if (loader && loader.parentNode) {
+      loader.parentNode.removeChild(loader);
+    }
+  }
+}; 

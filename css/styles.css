@@ -393,10 +393,9 @@ button, .method-btn, .cta-button {
 
 /* Visualization container */
 .visualization-container {
+    width: 100%;
     min-height: 400px;
-    min-width: 300px;
     position: relative;
-    overflow: hidden;
 }
 
 #intro-visualization,
@@ -440,17 +439,11 @@ button, .method-btn, .cta-button {
 /* Reset section styling to a simpler, more reliable layout */
 section {
     display: none;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    width: 100%;  /* Add this */
-    height: 100%; /* Add this */
+    min-height: 400px;
 }
 
 section.active {
     display: block;
-    opacity: 1;
-    transform: translateY(0);
 }
 
 /* Use a container for content layout */

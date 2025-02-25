@@ -1,3 +1,7 @@
+// Define colors if not defined elsewhere
+const positiveColor = "#10b981"; // Green
+const negativeColor = "#ef4444"; // Red
+
 class FeatureImportanceVis {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
@@ -9,9 +13,9 @@ class FeatureImportanceVis {
         // Create chart with proper margins
         this.margin = {
             top: 20,
-            right: 120, // Increased for labels
+            right: 120,
             bottom: 40,
-            left: 200  // Increased for feature names
+            left: 200
         };
         
         this.createChart();
@@ -70,9 +74,17 @@ class FeatureImportanceVis {
         const data = this.generateData(method);
         
         // Update scales
-        this.xScale.domain([d3.min(data, d => d.importance), d3.max(data, d => d.importance)]);
+        const minValUp = d3.min(data, d => d.importance);
+        const maxValUp = d3.max(data, d => d.importance);
+        this.xScale.domain([Math.min(0, minValUp), Math.max(0, maxValUp)]);
         
-        // Update bars with transition
+        // Update y scale
+        this.yScale.domain(data.map(d => d.feature));
+        
+        // Clear existing bars
+        this.svg.selectAll('.bar').remove();
+        
+        // Create new bars
         this.svg.selectAll('.bar')
             .data(data)
             .enter()
@@ -85,41 +97,40 @@ class FeatureImportanceVis {
             .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
         
         // Update value labels
-        const labels = this.svg.selectAll('.value-label')
-            .data(data);
+        this.svg.selectAll('.value-label').remove();
         
-        // Enter new labels
-        labels.enter()
+        this.svg.selectAll('.value-label')
+            .data(data)
+            .enter()
             .append('text')
             .attr('class', 'value-label')
             .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
             .attr('dy', '0.35em')
-            .attr('x', d => this.xScale(d.importance) + 5)
-            .attr('opacity', 0)
-            .text(d => d.importance.toFixed(2))
-            .merge(labels)
-            .transition()
-            .duration(750)
-            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
-            .attr('x', d => this.xScale(d.importance) + 5)
-            .attr('opacity', 1)
+            .attr('x', d => this.xScale(d.importance) + (d.importance < 0 ? -5 : 5))
+            .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
+            .attr('fill', '#ffffff')
             .text(d => d.importance.toFixed(2));
         
-        // Remove old labels
-        labels.exit().remove();
-        
         // Update axes
-        this.svg.select('.x-axis')
-            .transition()
-            .duration(750)
-            .call(d3.axisBottom(this.xScale))
-            .selectAll('text')
-            .style('fill', '#bbbbbb');
+        if (!this.svg.select('.x-axis').empty()) {
+            this.svg.select('.x-axis')
+                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
+                .call(d3.axisBottom(this.xScale));
+        } else {
+            this.svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', `translate(0, ${this.yScale.range()[1] + 10})`)
+                .call(d3.axisBottom(this.xScale));
+        }
         
-        this.svg.select('.y-axis')
-            .call(d3.axisLeft(this.yScale))
-            .selectAll('text')
-            .style('fill', '#bbbbbb');
+        if (!this.svg.select('.y-axis').empty()) {
+            this.svg.select('.y-axis')
+                .call(d3.axisLeft(this.yScale));
+        } else {
+            this.svg.append('g')
+                .attr('class', 'y-axis')
+                .call(d3.axisLeft(this.yScale));
+        }
     }
 
     generateData(method = 'permutation') {
@@ -171,11 +182,14 @@ class FeatureImportanceVis {
                 ];
         }
         
-        this.maxImportance = Math.max(...data.map(d => d.importance));
+        this.maxImportance = Math.max(...data.map(d => Math.abs(d.importance)));
         return data;
     }
 
     createChart() {
+        // Generate data first
+        const data = this.generateData();
+        
         const containerWidth = this.container.clientWidth;
         const containerHeight = this.container.clientHeight;
         if (containerWidth < 300 || containerHeight < 400) {
@@ -187,9 +201,12 @@ class FeatureImportanceVis {
         const innerWidth = Math.max(0, width - margin.left - margin.right);
         const innerHeight = Math.max(0, height - margin.top - margin.bottom);
         
-        // Set xScale domain to include negative values
+        const minVal = d3.min(data, d => d.importance);
+        const maxVal = d3.max(data, d => d.importance);
+        
+        // Ensure domain includes 0 and handles negative values properly
         this.xScale = d3.scaleLinear()
-            .domain([d3.min(data, d => d.importance), d3.max(data, d => d.importance)])
+            .domain([Math.min(0, minVal), Math.max(0, maxVal)])
             .range([0, innerWidth]);
         
         this.yScale = d3.scaleBand()
@@ -204,7 +221,7 @@ class FeatureImportanceVis {
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
         
-        // Create bars (using Math.abs for width to avoid negative widths)
+        // Create bars
         this.svg.selectAll('.bar')
             .data(data)
             .enter()
@@ -216,42 +233,28 @@ class FeatureImportanceVis {
             .attr('width', d => Math.abs(this.xScale(d.importance) - this.xScale(0)))
             .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
         
-        // Update value labels
-        const labels = this.svg.selectAll('.value-label')
-            .data(data);
-        
-        // Enter new labels
-        labels.enter()
+        // Add value labels
+        this.svg.selectAll('.value-label')
+            .data(data)
+            .enter()
             .append('text')
             .attr('class', 'value-label')
             .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
             .attr('dy', '0.35em')
-            .attr('x', d => this.xScale(d.importance) + 5)
-            .attr('opacity', 0)
-            .text(d => d.importance.toFixed(2))
-            .merge(labels)
-            .transition()
-            .duration(750)
-            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
-            .attr('x', d => this.xScale(d.importance) + 5)
-            .attr('opacity', 1)
+            .attr('x', d => this.xScale(d.importance) + (d.importance < 0 ? -5 : 5))
+            .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
+            .attr('fill', '#ffffff')
             .text(d => d.importance.toFixed(2));
         
-        // Remove old labels
-        labels.exit().remove();
+        // Add axes
+        this.svg.append('g')
+            .attr('class', 'x-axis')
+            .attr('transform', `translate(0, ${innerHeight})`)
+            .call(d3.axisBottom(this.xScale));
         
-        // Update axes
-        this.svg.select('.x-axis')
-            .transition()
-            .duration(750)
-            .call(d3.axisBottom(this.xScale))
-            .selectAll('text')
-            .style('fill', '#bbbbbb');
-        
-        this.svg.select('.y-axis')
-            .call(d3.axisLeft(this.yScale))
-            .selectAll('text')
-            .style('fill', '#bbbbbb');
+        this.svg.append('g')
+            .attr('class', 'y-axis')
+            .call(d3.axisLeft(this.yScale));
     }
     
     measureMaxLabelWidth() {
@@ -263,4 +266,7 @@ class FeatureImportanceVis {
             context.measureText(d.feature).width
         ));
     }
-} 
+}
+
+// Export with the correct name
+window.FeatureImportanceVis = FeatureImportanceVis; 
