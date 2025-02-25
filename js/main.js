@@ -927,9 +927,12 @@ function initVisualizationForSection(sectionId) {
     
     console.log('Container dimensions:', container.clientWidth, 'x', container.clientHeight);
     
-    // Delay initialization if container dimensions are zero
+    // Ensure container has dimensions before initializing
     if (container.clientWidth === 0 || container.clientHeight === 0) {
-        console.warn(`Container ${containerId} has zero dimensions, delaying visualization initialization.`);
+        console.warn(`Container ${containerId} has zero dimensions, forcing minimum dimensions`);
+        container.style.width = '100%';
+        container.style.minHeight = '400px';
+        // Try again after a short delay
         setTimeout(() => initVisualizationForSection(sectionId), 200);
         return;
     }

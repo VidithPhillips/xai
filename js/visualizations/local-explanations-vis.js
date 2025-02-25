@@ -33,8 +33,8 @@ class LocalExplanationsVis {
     }
 
     createChart() {
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
+        const width = this.container.clientWidth || 600; // Provide fallback width
+        const height = this.container.clientHeight || 400; // Provide fallback height
         
         // Increased left margin to prevent text overlap
         const margin = { top: 20, right: 30, bottom: 40, left: 150 };
@@ -46,9 +46,10 @@ class LocalExplanationsVis {
             this.data = this.getSampleData();
         }
         
-        // Create scales
+        // Create scales with proper domains
+        const maxEffect = Math.max(Math.abs(d3.min(this.data, d => d.effect)), Math.abs(d3.max(this.data, d => d.effect)));
         this.xScale = d3.scaleLinear()
-            .domain([d3.min(this.data, d => d.effect) * 1.2, d3.max(this.data, d => d.effect) * 1.2])
+            .domain([-maxEffect * 1.2, maxEffect * 1.2])
             .range([0, innerWidth]);
             
         this.yScale = d3.scaleBand()
@@ -77,7 +78,7 @@ class LocalExplanationsVis {
             .attr('x', this.xScale(0))
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
-            .attr('width', d => this.xScale(d.effect) - this.xScale(0))
+            .attr('width', d => Math.max(0, this.xScale(d.effect) - this.xScale(0)))
             .attr('fill', positiveColor)
             .attr('filter', 'url(#secondary-glow)');
 
@@ -90,7 +91,7 @@ class LocalExplanationsVis {
             .attr('x', d => this.xScale(d.effect))
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
-            .attr('width', d => this.xScale(0) - this.xScale(d.effect))
+            .attr('width', d => Math.max(0, this.xScale(0) - this.xScale(d.effect)))
             .attr('fill', negativeColor)
             .attr('filter', 'url(#accent-glow)');
             
