@@ -118,11 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize UI controls
         UIControls.initModals();
         UIControls.initButtons();
+        UIControls.initNavigation();
         
         // Initialize particle backgrounds for each section
         initParticleBackgrounds();
         
-        // Initialize all visualizations at once
+        // Initialize all visualizations
         initializeAllVisualizations();
         
         // Set up guided tours
@@ -142,12 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add a fun easter egg
         addEasterEgg();
-        
-        // Fix navigation functionality
-        initNavigation();
-        
-        // Add accessibility improvements
-        initAccessibility();
         
         // Call handleHashChange on initial page load
         handleHashChange();
@@ -1060,56 +1055,55 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    // Always use a wrapper with fixed dimensions
-    container.innerHTML = '';
-    const wrapper = document.createElement('div');
-    wrapper.id = `${containerId}-wrapper`;
-    wrapper.style.width = '800px';
-    wrapper.style.height = '400px';
-    wrapper.style.position = 'relative';
-    container.appendChild(wrapper);
+    // Force container dimensions before creating visualization
+    container.style.width = '100%';
+    container.style.minHeight = '400px';
+    container.style.display = 'block';
     
-    // Use the wrapper for visualization
-    const wrapperId = wrapper.id;
+    // Force layout recalculation
+    container.offsetHeight;
+    
+    console.log(`Container #${containerId} dimensions after forcing:`, 
+        container.clientWidth, 'x', container.clientHeight);
     
     // Use LoadingAnimation if it exists
     let loadingIndicator = null;
     if (typeof window.LoadingAnimation !== 'undefined') {
-        loadingIndicator = window.LoadingAnimation.show(wrapperId);
+        loadingIndicator = window.LoadingAnimation.show(containerId);
     }
     
     try {
-        console.log('Creating visualization for section:', sectionId, 'in container:', wrapperId);
+        console.log('Creating visualization for section:', sectionId, 'in container:', containerId);
         let visualizationCreated = false;
         
         switch (sectionId) {
             case 'introduction':
                 if (typeof IntroAnimation === 'function') {
-                    window.currentVisualization = new IntroAnimation(wrapperId);
+                    window.currentVisualization = new IntroAnimation(containerId);
                     visualizationCreated = true;
                 }
                 break;
             case 'neural-networks':
                 if (typeof NeuralNetworkVis === 'function') {
-                    window.currentVisualization = new NeuralNetworkVis(wrapperId);
+                    window.currentVisualization = new NeuralNetworkVis(containerId);
                     visualizationCreated = true;
                 }
                 break;
             case 'feature-importance':
                 if (typeof FeatureImportanceVis === 'function') {
-                    window.currentVisualization = new FeatureImportanceVis(wrapperId);
+                    window.currentVisualization = new FeatureImportanceVis(containerId);
                     visualizationCreated = true;
                 }
                 break;
             case 'local-explanations':
                 if (typeof LocalExplanationsVis === 'function') {
-                    window.currentVisualization = new LocalExplanationsVis(wrapperId);
+                    window.currentVisualization = new LocalExplanationsVis(containerId);
                     visualizationCreated = true;
                 }
                 break;
             case 'counterfactuals':
                 if (typeof CounterfactualsVis === 'function') {
-                    window.currentVisualization = new CounterfactualsVis(wrapperId);
+                    window.currentVisualization = new CounterfactualsVis(containerId);
                     visualizationCreated = true;
                 }
                 break;
@@ -1119,14 +1113,14 @@ function initVisualizationForSection(sectionId) {
         
         if (!visualizationCreated) {
             console.warn(`Visualization class for ${sectionId} not found, using fallback`);
-            createFallbackVisualization(wrapperId, `${sectionId} Visualization (Fallback)`);
+            createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
         } else {
             console.log('Visualization created successfully');
         }
         console.log("Visualization created successfully");
     } catch (error) {
         console.error('Error initializing visualization:', error);
-        const wrapperElement = document.getElementById(wrapperId);
+        const wrapperElement = document.getElementById(containerId);
         if (wrapperElement) {
             wrapperElement.innerHTML = `
                 <div class="error-message">

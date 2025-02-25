@@ -7,16 +7,8 @@ class NeuralNetworkVis {
             return;
         }
         
-        // Set default dimensions if container dimensions are zero
-        const width = this.container.clientWidth || 800;
-        const height = this.container.clientHeight || 400;
-        
-        // These should be assigned to instance properties
-        this.width = width;
-        this.height = height;
-        
         console.log(`Creating NeuralNetworkVis in container:`, containerId);
-        console.log(`Container dimensions:`, width, 'x', height);
+        console.log(`Container dimensions:`, this.container.clientWidth, 'x', this.container.clientHeight);
         
         try {
             // Check WebGL support
@@ -26,35 +18,31 @@ class NeuralNetworkVis {
                 return;
             }
             
-            // Setup configuration
-            this.config = {
-                layers: 3,
-                neuronsPerLayer: 5,
-                activation: 'relu'
-            };
+            // Initialize Three.js scene using ThreeSetup
+            const { scene, camera, renderer, controls } = ThreeSetup.init(containerId, {
+                fov: 75,
+                cameraZ: 15
+            });
             
-            // Setup scene with better performance settings
-            this.setupScene();
-            this.setupCamera();
-            this.setupLights();
-            this.setupControls();
+            this.scene = scene;
+            this.camera = camera;
+            this.renderer = renderer;
+            this.controls = controls;
             
-            // Initialize the network
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            this.scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            this.scene.add(directionalLight);
+            
+            // Create network
             this.createNetwork();
             
-            // Start animation with performance optimization
-            this.lastRenderTime = 0;
+            // Start animation
             this.animate();
             
-            // Setup event listeners
-            this.setupEventListeners();
-            
-            // Store for cleanup
-            this.isActive = true;
-            
-            // Add resize handler
-            this.resizeHandler = this.handleResize.bind(this);
-            window.addEventListener('resize', this.resizeHandler);
         } catch (error) {
             console.error("Error initializing 3D visualization:", error);
             this.createFallback2DNetwork();
@@ -86,17 +74,6 @@ class NeuralNetworkVis {
                 this.createFallback2DNetwork();
             });
         }
-    }
-    
-    setupScene() {
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x111111);
-        
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(this.width, this.height);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        
-        this.container.appendChild(this.renderer.domElement);
     }
     
     animate(time = 0) {
@@ -389,45 +366,6 @@ class NeuralNetworkVis {
         // Create nodes and connections for the network
         this.createNodes();
         this.createConnections();
-    }
-
-    // Add missing camera setup method
-    setupCamera() {
-        const aspect = this.width / this.height;
-        this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
-        this.camera.position.z = 15;
-    }
-
-    // Add missing lights setup method
-    setupLights() {
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(ambientLight);
-        
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(1, 1, 1);
-        this.scene.add(directionalLight);
-    }
-
-    // Add missing controls setup method
-    setupControls() {
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.25;
-        this.controls.rotateSpeed = 0.5;
-    }
-
-    // Add missing event listener setup
-    setupEventListeners() {
-        // Add UI control listeners
-        const layersInput = document.getElementById('nn-layers');
-        if (layersInput) {
-            layersInput.addEventListener('input', this.updateVisualization.bind(this));
-        }
-        
-        const neuronsInput = document.getElementById('nn-neurons');
-        if (neuronsInput) {
-            neuronsInput.addEventListener('input', this.updateVisualization.bind(this));
-        }
     }
 
     // Add missing resize handler

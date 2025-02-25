@@ -3,89 +3,49 @@
  * This file contains helper functions for setting up Three.js scenes
  */
 
-const ThreeSetup = {
-    // Create a basic Three.js scene
-    createScene: function(containerId) {
+class ThreeSetup {
+    static init(containerId, options = {}) {
         const container = document.getElementById(containerId);
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        
+        if (!container) {
+            throw new Error(`Container #${containerId} not found`);
+        }
+
         // Create scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf9fafb);
         
-        // Create camera
-        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = 5;
-        
-        // Create renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
-        
-        // Add ambient light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        
-        // Add directional light
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(1, 1, 1);
-        scene.add(directionalLight);
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            const newWidth = container.clientWidth;
-            const newHeight = container.clientHeight;
-            
-            camera.aspect = newWidth / newHeight;
-            camera.updateProjectionMatrix();
-            
-            renderer.setSize(newWidth, newHeight);
+        // Setup camera
+        const camera = new THREE.PerspectiveCamera(
+            options.fov || 75,
+            container.clientWidth / container.clientHeight,
+            options.near || 0.1,
+            options.far || 1000
+        );
+        camera.position.z = options.cameraZ || 5;
+
+        // Setup renderer
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
         });
-        
-        return { scene, camera, renderer };
-    },
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Setup controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Add resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        return { scene, camera, renderer, controls };
+    }
     
-    // Create orbit controls for camera
-    createOrbitControls: function(camera, renderer) {
-        try {
-            // Check if OrbitControls is available
-            if (typeof OrbitControls === 'undefined') {
-                console.warn('OrbitControls not available, using basic controls');
-                // Return a basic controls object with the same API
-                return {
-                    enableDamping: false,
-                    dampingFactor: 0.05,
-                    rotateSpeed: 0.7,
-                    zoomSpeed: 0.7,
-                    panSpeed: 0.7,
-                    update: function() {}
-                };
-            }
-            
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.rotateSpeed = 0.7;
-            controls.zoomSpeed = 0.7;
-            controls.panSpeed = 0.7;
-            return controls;
-        } catch (error) {
-            console.warn('Error creating OrbitControls, using basic controls:', error);
-            return {
-                enableDamping: false,
-                dampingFactor: 0.05,
-                rotateSpeed: 0.7,
-                zoomSpeed: 0.7,
-                panSpeed: 0.7,
-                update: function() {}
-            };
-        }
-    },
-    
-    // Create a particle system
-    createParticleSystem: function(count, spread) {
+    static createParticleSystem(count, spread) {
         const particles = new THREE.BufferGeometry();
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
@@ -117,4 +77,6 @@ const ThreeSetup = {
         
         return new THREE.Points(particles, material);
     }
-}; 
+}
+
+window.ThreeSetup = ThreeSetup; 

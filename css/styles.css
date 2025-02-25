@@ -989,4 +989,33 @@ pre code {
     border: 2px solid red;
     min-height: 400px !important;
     width: 100% !important;
+}
+
+.instance-buttons,
+.scenario-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.instance-btn,
+.scenario-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #4b5563;
+    background: #1f2937;
+    color: #ffffff;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.instance-btn:hover,
+.scenario-btn:hover {
+    background: #374151;
+}
+
+.instance-btn.active,
+.scenario-btn.active {
+    background: #3b82f6;
+    border-color: #2563eb;
 } 

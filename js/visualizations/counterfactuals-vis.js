@@ -35,33 +35,21 @@ class CounterfactualsVis {
     }
     
     setupScenarioButtons() {
-        // Find scenario buttons
-        const scenarioButtons = document.querySelectorAll('.scenario-btn');
+        // Find scenario buttons within the same section as the container
+        const section = this.container.closest('section');
+        const scenarioButtons = section ? section.querySelectorAll('.scenario-btn') : [];
+        
         if (scenarioButtons.length === 0) {
             console.warn('No scenario buttons found for counterfactuals visualization');
             return;
         }
         
-        // Add click event listeners
         scenarioButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Update active button
-                scenarioButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Get scenario ID from button
-                const scenarioId = button.dataset.scenario || '1';
-                console.log(`Switching to scenario: ${scenarioId}`);
-                
-                // Update visualization
+                const scenarioId = button.dataset.scenario;
                 this.updateVisualization(scenarioId);
             });
         });
-        
-        // Set first button as active
-        if (scenarioButtons[0]) {
-            scenarioButtons[0].classList.add('active');
-        }
     }
     
     updateVisualization(scenarioId) {

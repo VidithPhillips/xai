@@ -168,33 +168,21 @@ class LocalExplanationsVis {
     }
 
     setupInstanceButtons() {
-        // Find instance buttons
-        const instanceButtons = document.querySelectorAll('.instance-btn');
+        // Find instance buttons within the same section as the container
+        const section = this.container.closest('section');
+        const instanceButtons = section ? section.querySelectorAll('.instance-btn') : [];
+        
         if (instanceButtons.length === 0) {
             console.warn('No instance buttons found for local explanations visualization');
             return;
         }
         
-        // Add click event listeners
         instanceButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Update active button
-                instanceButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Get instance ID from button
-                const instanceId = button.dataset.instance || '1';
-                console.log(`Switching to instance: ${instanceId}`);
-                
-                // Update visualization
+                const instanceId = button.dataset.instance;
                 this.updateVisualization(instanceId);
             });
         });
-        
-        // Set first button as active
-        if (instanceButtons[0]) {
-            instanceButtons[0].classList.add('active');
-        }
     }
 
     updateVisualization(instanceId) {

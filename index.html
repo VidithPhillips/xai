@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.2/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/curves/CubicBezierCurve3.js"></script>
 </head>
 <body>
     <header>
@@ -157,11 +160,11 @@
                         
                         <div class="instance-selector">
                             <h4>Select Instance:</h4>
-                            <select id="instance-selector">
-                                <option value="instance1">Instance #1 (Approved Loan)</option>
-                                <option value="instance2">Instance #2 (Denied Loan)</option>
-                                <option value="instance3">Instance #3 (Borderline Case)</option>
-                            </select>
+                            <div class="instance-buttons">
+                                <button class="instance-btn active" data-instance="1">Instance #1 (Approved)</button>
+                                <button class="instance-btn" data-instance="2">Instance #2 (Denied)</button>
+                                <button class="instance-btn" data-instance="3">Instance #3 (Borderline)</button>
+                            </div>
                         </div>
                         
                         <div class="method-selector">
@@ -196,6 +199,15 @@
                                 <div class="prediction-threshold"></div>
                             </div>
                             <p class="prediction-label">Probability: <span id="prediction-probability">40%</span></p>
+                        </div>
+                        
+                        <div class="scenario-selector">
+                            <h4>Select Scenario:</h4>
+                            <div class="scenario-buttons">
+                                <button class="scenario-btn active" data-scenario="1">Scenario #1</button>
+                                <button class="scenario-btn" data-scenario="2">Scenario #2</button>
+                                <button class="scenario-btn" data-scenario="3">Scenario #3</button>
+                            </div>
                         </div>
                         
                         <div class="feature-controls">
