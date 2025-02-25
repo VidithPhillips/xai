@@ -4,7 +4,21 @@
  */
 
 class ThreeSetup {
+    static isWebGLAvailable() {
+        try {
+            const canvas = document.createElement('canvas');
+            return !!(window.WebGLRenderingContext && 
+                (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+        } catch (e) {
+            return false;
+        }
+    }
+
     static init(containerId, options = {}) {
+        if (!this.isWebGLAvailable()) {
+            throw new Error('WebGL is not supported');
+        }
+
         const container = document.getElementById(containerId);
         if (!container) {
             throw new Error(`Container #${containerId} not found`);
@@ -12,6 +26,7 @@ class ThreeSetup {
 
         // Create scene
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
         
         // Setup camera
         const camera = new THREE.PerspectiveCamera(
@@ -28,6 +43,7 @@ class ThreeSetup {
             alpha: true
         });
         renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
 
         // Setup controls

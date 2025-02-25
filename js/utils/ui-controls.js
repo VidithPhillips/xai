@@ -32,11 +32,10 @@ class UIControls {
         // Initialize method buttons
         document.querySelectorAll('.method-btn').forEach(button => {
             button.addEventListener('click', () => {
-                // Remove active class from siblings
-                button.parentElement.querySelectorAll('.method-btn').forEach(btn => {
+                const parent = button.parentElement;
+                parent.querySelectorAll('.method-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                // Add active class to clicked button
                 button.classList.add('active');
             });
         });
@@ -45,14 +44,21 @@ class UIControls {
         ['instance-btn', 'scenario-btn'].forEach(btnClass => {
             document.querySelectorAll(`.${btnClass}`).forEach(button => {
                 button.addEventListener('click', () => {
-                    // Remove active class from siblings
-                    button.parentElement.querySelectorAll(`.${btnClass}`).forEach(btn => {
+                    const parent = button.parentElement;
+                    parent.querySelectorAll(`.${btnClass}`).forEach(btn => {
                         btn.classList.remove('active');
                     });
-                    // Add active class to clicked button
                     button.classList.add('active');
                 });
             });
+        });
+
+        // Set first buttons as active
+        document.querySelectorAll('.instance-buttons, .scenario-buttons').forEach(container => {
+            const firstButton = container.querySelector('button');
+            if (firstButton) {
+                firstButton.classList.add('active');
+            }
         });
     }
 

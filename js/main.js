@@ -112,19 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
     debugGlobalObjects();
     
     try {
-        // Apply dark theme initialization
-        initDarkTheme();
-        
-        // Initialize UI controls
-        UIControls.initModals();
+        // Initialize UI controls first
         UIControls.initButtons();
+        UIControls.initModals();
         UIControls.initNavigation();
+        
+        // Initialize visualizations after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            initializeAllVisualizations();
+        }, 100);
         
         // Initialize particle backgrounds for each section
         initParticleBackgrounds();
-        
-        // Initialize all visualizations
-        initializeAllVisualizations();
         
         // Set up guided tours
         setupGuidedTours();
@@ -1014,26 +1013,6 @@ function handleHashChange() {
 function initVisualizationForSection(sectionId) {
     console.log(`Initializing visualization for section: ${sectionId}`);
     
-    // Map section IDs to visualization variable names for cleanup
-    const visVarMap = {
-        'introduction': 'introVis',
-        'neural-networks': 'neuralNetworksVis',
-        'feature-importance': 'featureImportanceVis',
-        'local-explanations': 'localExplanationsVis',
-        'counterfactuals': 'counterfactualsVis'
-    };
-    
-    // Dispose previous visualization if it exists
-    const visVarName = visVarMap[sectionId];
-    if (visVarName && window[visVarName]) {
-        console.log(`Disposing previous visualization: ${visVarName}`);
-        if (typeof window[visVarName].dispose === 'function') {
-            window[visVarName].dispose();
-        }
-        window[visVarName] = null;
-    }
-    
-    // Map section IDs to container IDs
     const containerMap = {
         'introduction': 'intro-visualization',
         'neural-networks': 'neural-network-visualization',
@@ -1048,87 +1027,37 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    // Debug container dimensions
+    // Get container and ensure it's visible
     const container = document.getElementById(containerId);
     if (!container) {
         console.error(`Container #${containerId} not found`);
         return;
     }
-    
-    // Force container dimensions before creating visualization
+
+    // Force container to be visible and have dimensions
+    container.style.display = 'block';
     container.style.width = '100%';
     container.style.minHeight = '400px';
-    container.style.display = 'block';
     
     // Force layout recalculation
     container.offsetHeight;
     
-    console.log(`Container #${containerId} dimensions after forcing:`, 
-        container.clientWidth, 'x', container.clientHeight);
-    
-    // Use LoadingAnimation if it exists
-    let loadingIndicator = null;
-    if (typeof window.LoadingAnimation !== 'undefined') {
-        loadingIndicator = window.LoadingAnimation.show(containerId);
-    }
-    
+    console.log(`Container #${containerId} dimensions:`, container.clientWidth, 'x', container.clientHeight);
+
     try {
-        console.log('Creating visualization for section:', sectionId, 'in container:', containerId);
-        let visualizationCreated = false;
-        
-        switch (sectionId) {
-            case 'introduction':
-                if (typeof IntroAnimation === 'function') {
-                    window.currentVisualization = new IntroAnimation(containerId);
-                    visualizationCreated = true;
-                }
-                break;
-            case 'neural-networks':
-                if (typeof NeuralNetworkVis === 'function') {
-                    window.currentVisualization = new NeuralNetworkVis(containerId);
-                    visualizationCreated = true;
-                }
-                break;
-            case 'feature-importance':
-                if (typeof FeatureImportanceVis === 'function') {
-                    window.currentVisualization = new FeatureImportanceVis(containerId);
-                    visualizationCreated = true;
-                }
-                break;
-            case 'local-explanations':
-                if (typeof LocalExplanationsVis === 'function') {
-                    window.currentVisualization = new LocalExplanationsVis(containerId);
-                    visualizationCreated = true;
-                }
-                break;
-            case 'counterfactuals':
-                if (typeof CounterfactualsVis === 'function') {
-                    window.currentVisualization = new CounterfactualsVis(containerId);
-                    visualizationCreated = true;
-                }
-                break;
-            default:
-                console.error('Unknown section ID:', sectionId);
-        }
-        
-        if (!visualizationCreated) {
-            console.warn(`Visualization class for ${sectionId} not found, using fallback`);
+        const visualization = window.visualizationRegistry.create(sectionId);
+        if (!visualization) {
+            console.warn(`Visualization creation failed for ${sectionId}, using fallback`);
             createFallbackVisualization(containerId, `${sectionId} Visualization (Fallback)`);
-        } else {
-            console.log('Visualization created successfully');
         }
-        console.log("Visualization created successfully");
     } catch (error) {
         console.error('Error initializing visualization:', error);
-        const wrapperElement = document.getElementById(containerId);
-        if (wrapperElement) {
-            wrapperElement.innerHTML = `
-                <div class="error-message">
-                    <h4>Visualization Error</h4>
-                    <p>${error.message || 'Failed to load visualization'}</p>
-                </div>
-            `;
-        }
+        container.innerHTML = `
+            <div class="error-message">
+                <h4>Visualization Error</h4>
+                <p>${error.message || 'Failed to load visualization'}</p>
+            </div>
+        `;
     }
 }
 

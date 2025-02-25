@@ -4,97 +4,79 @@
 class VisualizationRegistry {
     constructor() {
         this.visualizations = new Map();
-        this.activeVisualizations = new Set();
-        console.log('Visualization registry initialized');
+        this.instances = new Map();
     }
     
-    register(id, VisualizationClass) {
-        this.visualizations.set(id, VisualizationClass);
-        console.log(`Registered visualization: ${id}`);
+    register(sectionId, VisualizationClass) {
+        if (typeof VisualizationClass !== 'function') {
+            console.error(`Invalid visualization class for section ${sectionId}`);
+            return;
+        }
+        // Only register if not already registered
+        if (!this.visualizations.has(sectionId)) {
+            this.visualizations.set(sectionId, VisualizationClass);
+            console.log(`Registered visualization: ${sectionId}`);
+        }
     }
     
-    create(id, containerId, options = {}) {
-        if (!this.visualizations.has(id)) {
-            console.error(`Visualization ${id} not registered`);
+    create(sectionId) {
+        const containerMap = {
+            'introduction': 'intro-visualization',
+            'neural-networks': 'neural-network-visualization',
+            'feature-importance': 'feature-importance-visualization',
+            'local-explanations': 'local-explanations-visualization',
+            'counterfactuals': 'counterfactuals-visualization'
+        };
+
+        const containerId = containerMap[sectionId];
+        if (!containerId) {
+            console.error(`No container mapped for section: ${sectionId}`);
             return null;
         }
-        
+
+        // Clean up previous instance if it exists
+        this.dispose(sectionId);
+
+        const VisualizationClass = this.visualizations.get(sectionId);
+        if (!VisualizationClass) {
+            console.error(`No visualization registered for section: ${sectionId}`);
+            return null;
+        }
+
         try {
-            const VisualizationClass = this.visualizations.get(id);
-            const instance = new VisualizationClass(containerId, options);
-            this.activeVisualizations.add(instance);
-            console.log(`Created visualization: ${id} in container: ${containerId}`);
+            const instance = new VisualizationClass(containerId);
+            this.instances.set(sectionId, instance);
             return instance;
         } catch (error) {
-            console.error(`Error creating visualization ${id}:`, error);
+            console.error(`Error creating visualization for ${sectionId}:`, error);
             return null;
         }
     }
     
-    dispose(instance) {
-        if (!instance) return;
-        
-        try {
-            if (typeof instance.dispose === 'function') {
-                instance.dispose();
-            }
-            this.activeVisualizations.delete(instance);
-            console.log(`Disposed visualization instance`);
-        } catch (error) {
-            console.error('Error disposing visualization:', error);
+    dispose(sectionId) {
+        const instance = this.instances.get(sectionId);
+        if (instance && typeof instance.dispose === 'function') {
+            instance.dispose();
         }
-    }
-    
-    disposeAll() {
-        console.log(`Disposing all visualizations (${this.activeVisualizations.size})`);
-        for (const instance of this.activeVisualizations) {
-            this.dispose(instance);
-        }
-        this.activeVisualizations.clear();
-    }
-    
-    getActiveCount() {
-        return this.activeVisualizations.size;
+        this.instances.delete(sectionId);
     }
 }
 
-// Create global registry
+// Create and export global instance
 window.visualizationRegistry = new VisualizationRegistry();
 
-// Register visualization classes
+// Register visualizations when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const registry = window.visualizationRegistry;
-    
-    // Register visualization classes when they're available
-    const checkAndRegister = () => {
-        if (window.IntroAnimation) {
-            registry.register('introduction', window.IntroAnimation);
-            console.log('Registered IntroAnimation');
-        }
-        if (window.NeuralNetworkVis) {
-            registry.register('neural-networks', window.NeuralNetworkVis);
-            console.log('Registered NeuralNetworkVis');
-        }
-        if (window.FeatureImportanceVis) {
-            registry.register('feature-importance', window.FeatureImportanceVis);
-            console.log('Registered FeatureImportanceVis');
-        }
-        if (window.LocalExplanationsVis) {
-            registry.register('local-explanations', window.LocalExplanationsVis);
-            console.log('Registered LocalExplanationsVis');
-        }
-        if (window.CounterfactualsVis) {
-            registry.register('counterfactuals', window.CounterfactualsVis);
-            console.log('Registered CounterfactualsVis');
-        }
-    };
-    
-    // Try immediately
-    checkAndRegister();
-    
-    // And also after a short delay to ensure all scripts are loaded
+    // Wait a moment to ensure all classes are loaded
     setTimeout(() => {
-        checkAndRegister();
-        console.log('All visualization classes loaded successfully!');
-    }, 500);
+        const registry = window.visualizationRegistry;
+        
+        if (window.IntroAnimation) registry.register('introduction', window.IntroAnimation);
+        if (window.NeuralNetworkVis) registry.register('neural-networks', window.NeuralNetworkVis);
+        if (window.FeatureImportanceVis) registry.register('feature-importance', window.FeatureImportanceVis);
+        if (window.LocalExplanationsVis) registry.register('local-explanations', window.LocalExplanationsVis);
+        if (window.CounterfactualsVis) registry.register('counterfactuals', window.CounterfactualsVis);
+        
+        console.log('Visualization registry initialized');
+    }, 100);
 }); 
