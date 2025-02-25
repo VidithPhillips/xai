@@ -935,8 +935,10 @@ function handleHashChange() {
             link.classList.add('active');
         }
         
-        // Initialize visualization
-        initVisualizationForSection(hash);
+        // Wait for the section to be fully visible before initializing
+        setTimeout(() => {
+            initVisualizationForSection(hash);
+        }, 100); // Increased delay to ensure DOM updates
     }
 }
 

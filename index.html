@@ -55,9 +55,7 @@
                         <button class="cta-button" id="start-exploring">Start Exploring</button>
                     </div>
                 </div>
-                <div class="visualization-container">
-                    <div id="intro-visualization"></div>
-                </div>
+                <div id="intro-visualization" class="visualization-container"></div>
             </div>
         </section>
 
@@ -92,9 +90,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="visualization-container">
-                    <div id="neural-network-visualization"></div>
-                </div>
+                <div id="neural-network-visualization" class="visualization-container"></div>
             </div>
         </section>
 
@@ -144,9 +140,7 @@
                         <p>Try selecting different datasets and methods to see how feature importance changes!</p>
                     </div>
                 </div>
-                <div class="visualization-container">
-                    <div id="feature-importance-visualization"></div>
-                </div>
+                <div id="feature-importance-visualization" class="visualization-container"></div>
             </div>
         </section>
 
@@ -180,9 +174,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="visualization-container">
-                    <div id="local-explanations-visualization"></div>
-                </div>
+                <div id="local-explanations-visualization" class="visualization-container"></div>
             </div>
         </section>
 
@@ -219,9 +211,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="visualization-container">
-                    <div id="counterfactuals-visualization"></div>
-                </div>
+                <div id="counterfactuals-visualization" class="visualization-container"></div>
             </div>
         </section>
     </main>
@@ -285,7 +275,7 @@
         // Check if all required scripts are loaded
         window.addEventListener('load', () => {
             const requiredClasses = [
-                'IntroVisualization',
+                'IntroAnimation',
                 'NeuralNetworkVis',
                 'FeatureImportanceVis',
                 'LocalExplanationsVis',

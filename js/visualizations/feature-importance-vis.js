@@ -18,11 +18,12 @@ class FeatureImportanceVis {
             left: 200
         };
         
-        this.createChart();
-        
         // Add resize handler
         this.resizeHandler = this.handleResize.bind(this);
         window.addEventListener('resize', this.resizeHandler);
+        
+        // Create chart after everything is set up
+        setTimeout(() => this.createChart(), 50);
     }
     
     updateDimensions() {
@@ -135,16 +136,6 @@ class FeatureImportanceVis {
 
     generateData(method = 'permutation') {
         // Generate mock data with proper neon colors
-        const features = [
-            'Income',
-            'Credit Score',
-            'Employment Years',
-            'Debt Ratio',
-            'Loan Amount',
-            'Previous Defaults',
-            'Age'
-        ];
-        
         let data;
         
         switch(method) {
@@ -182,7 +173,6 @@ class FeatureImportanceVis {
                 ];
         }
         
-        this.maxImportance = Math.max(...data.map(d => Math.abs(d.importance)));
         return data;
     }
 
@@ -192,9 +182,13 @@ class FeatureImportanceVis {
         
         const containerWidth = this.container.clientWidth;
         const containerHeight = this.container.clientHeight;
-        if (containerWidth < 300 || containerHeight < 400) {
+        
+        if (containerWidth < 100 || containerHeight < 100) {
             console.warn("Container dimensions too small for visualization");
+            setTimeout(() => this.createChart(), 100);
+            return;
         }
+        
         const width = containerWidth;
         const height = containerHeight;
         const margin = { top: 20, right: 30, bottom: 40, left: 120 };
