@@ -6,6 +6,30 @@ class VisualizationRegistry {
         this.visualizations = new Map();
         this.instances = new Map();
         console.log('VisualizationRegistry initialized');
+        
+        // Add window resize handler
+        this.setupResizeHandler();
+    }
+    
+    // Add this method to handle resizing
+    setupResizeHandler() {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            // Debounce resize events
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('Window resized, updating visualizations');
+                this.instances.forEach((instance, sectionId) => {
+                    if (instance && typeof instance.resize === 'function') {
+                        try {
+                            instance.resize();
+                        } catch (error) {
+                            console.error(`Error resizing visualization for ${sectionId}:`, error);
+                        }
+                    }
+                });
+            }, 250);
+        });
     }
     
     register(sectionId, VisualizationClass) {

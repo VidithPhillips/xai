@@ -251,6 +251,43 @@ class FeatureImportanceVis {
             console.warn('Error during disposal:', error);
         }
     }
+    
+    resize() {
+        if (!this.container) return;
+        
+        // Get new dimensions
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 400;
+        
+        console.log(`Resizing FeatureImportanceVis to ${width}x${height}`);
+        
+        // Update dimensions
+        this.width = width;
+        this.height = height;
+        
+        // Update SVG dimensions
+        if (this.svg) {
+            this.svg
+                .attr('width', width)
+                .attr('height', height);
+                
+            // Update visualization elements
+            this.updateVisualization();
+        }
+    }
+    
+    updateVisualization() {
+        // Get current method
+        const method = this.currentMethod || 'permutation';
+        
+        // Clear existing visualization
+        if (this.svg) {
+            this.svg.selectAll('*').remove();
+        }
+        
+        // Re-render with current data and dimensions
+        this.renderFeatureImportance(method);
+    }
 }
 
 // Export with the correct name

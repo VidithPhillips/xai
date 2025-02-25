@@ -288,6 +288,28 @@ class NeuralNetworkVis {
             console.warn('Error during disposal:', error);
         }
     }
+    
+    resize() {
+        if (!this.container || !this.renderer) return;
+        
+        console.log('Resizing NeuralNetworkVis');
+        
+        // Get new dimensions
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        
+        // Update renderer size
+        this.renderer.setSize(width, height);
+        
+        // Update camera aspect ratio
+        if (this.camera) {
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+        }
+        
+        // Re-render the scene
+        this.render();
+    }
 }
 
 // Add this at the end of the file
