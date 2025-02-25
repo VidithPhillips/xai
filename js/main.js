@@ -96,36 +96,64 @@ function initVisualizations() {
     }
 }
 
-// Helper function to initialize a visualization with proper container setup
+// Improved visualization initialization with WebGL detection and error handling
 function initVisualizationWithContainer(containerId, initFunction) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // Set explicit dimensions
-    container.style.width = '100%';
-    container.style.height = '100%';
+    // Clear any existing content
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
     
-    // Show loading indicator
-    const loadingIndicator = LoadingAnimation.show(containerId);
-    
-    // Initialize with a delay to ensure DOM is ready
-    setTimeout(() => {
-        try {
-            initFunction();
-            // Hide loading indicator after initialization
-            setTimeout(() => {
-                LoadingAnimation.hide(loadingIndicator);
-            }, 500);
-        } catch (error) {
-            console.error(`Error initializing ${containerId}:`, error);
-            LoadingAnimation.hide(loadingIndicator);
-            handleVisualizationError(containerId);
+    try {
+        // Check for WebGL support for 3D visualizations
+        if (containerId.includes('neural-network') && !isWebGLSupported()) {
+            throw new Error('WebGL not supported');
         }
-    }, 100);
+        
+        // Set proper dimensions
+        const containerRect = container.getBoundingClientRect();
+        if (containerRect.width > 0 && containerRect.height > 0) {
+            container.style.width = `${containerRect.width}px`;
+            container.style.height = `${containerRect.height}px`;
+        }
+        
+        // Show loading indicator
+        const loadingIndicator = LoadingAnimation.show(containerId);
+        
+        // Initialize with a delay to ensure DOM is ready
+        setTimeout(() => {
+            try {
+                initFunction();
+                setTimeout(() => {
+                    LoadingAnimation.hide(loadingIndicator);
+                }, 500);
+            } catch (error) {
+                console.error(`Error initializing ${containerId}:`, error);
+                LoadingAnimation.hide(loadingIndicator);
+                handleVisualizationError(containerId, error);
+            }
+        }, 100);
+    } catch (error) {
+        console.error(`Error setting up ${containerId}:`, error);
+        handleVisualizationError(containerId, error);
+    }
 }
 
-// Handle visualization errors
-function handleVisualizationError(containerId) {
+// WebGL support detection
+function isWebGLSupported() {
+    try {
+        const canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext && 
+            (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch (e) {
+        return false;
+    }
+}
+
+// Improved error handling
+function handleVisualizationError(containerId, error) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
@@ -136,8 +164,9 @@ function handleVisualizationError(containerId) {
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <p>There was an error loading this visualization.</p>
+            <p>${error.message || 'There was an error loading this visualization.'}</p>
             <button class="retry-button">Retry</button>
+            <button class="fallback-button">Use Simplified Version</button>
         </div>
     `;
     
@@ -147,6 +176,15 @@ function handleVisualizationError(containerId) {
         retryButton.addEventListener('click', () => {
             container.innerHTML = '';
             initVisualizations();
+        });
+    }
+    
+    // Add fallback functionality
+    const fallbackButton = container.querySelector('.fallback-button');
+    if (fallbackButton) {
+        fallbackButton.addEventListener('click', () => {
+            container.innerHTML = '';
+            createFallbackVisualization(container);
         });
     }
 }
@@ -212,61 +250,105 @@ function initIntroVisualization() {
     }
 }
 
-// Create a fallback 2D visualization using D3
-function createFallbackVisualization(container) {
+// Enhance fallback visualization creation
+function createFallbackVisualization(container, type = 'generic') {
     container.innerHTML = '';
     
     const width = container.clientWidth;
     const height = container.clientHeight || 500;
     
+    // Add fade-in animation class
+    container.classList.add('fade-in');
+    
+    // Create SVG container
     const svg = d3.select(container)
         .append('svg')
         .attr('width', width)
         .attr('height', height);
-    
-    // Create a simple animated visualization
-    const numCircles = 50;
-    const circles = [];
-    
-    for (let i = 0; i < numCircles; i++) {
-        circles.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            r: Math.random() * 20 + 5,
-            color: d3.interpolateInferno(Math.random()),
-            vx: (Math.random() - 0.5) * 2,
-            vy: (Math.random() - 0.5) * 2
-        });
+        
+    switch(type) {
+        case 'neural-network':
+            createFallbackNeuralNetwork(svg, width, height);
+            break;
+        case 'feature-importance':
+            createFallbackFeatureImportance(svg, width, height);
+            break;
+        case 'local-explanations':
+            createFallbackLocalExplanation(svg, width, height);
+            break;
+        case 'counterfactuals':
+            createFallbackCounterfactual(svg, width, height);
+            break;
+        default:
+            createGenericFallback(svg, width, height);
     }
+}
+
+// Add specific fallback function for feature importance
+function createFallbackFeatureImportance(svg, width, height) {
+    const features = [
+        { name: "Income", value: 0.8 },
+        { name: "Credit Score", value: 0.75 },
+        { name: "Debt Ratio", value: 0.6 },
+        { name: "Age", value: 0.4 },
+        { name: "Employment Years", value: 0.35 }
+    ];
     
-    svg.selectAll('circle')
-        .data(circles)
+    const margin = { top: 20, right: 30, bottom: 40, left: 120 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    
+    // Create scales
+    const xScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([0, innerWidth]);
+    
+    const yScale = d3.scaleBand()
+        .domain(features.map(d => d.name))
+        .range([0, innerHeight])
+        .padding(0.2);
+    
+    // Create bars with animation
+    g.selectAll('.bar')
+        .data(features)
         .enter()
-        .append('circle')
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .attr('r', d => d.r)
-        .attr('fill', d => d.color)
-        .attr('opacity', 0.7);
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('y', d => yScale(d.name))
+        .attr('height', yScale.bandwidth())
+        .attr('x', 0)
+        .attr('width', 0)
+        .attr('fill', '#6366f1')
+        .transition()
+        .duration(1000)
+        .attr('width', d => xScale(d.value));
     
-    function animate() {
-        circles.forEach(circle => {
-            circle.x += circle.vx;
-            circle.y += circle.vy;
-            
-            if (circle.x < 0 || circle.x > width) circle.vx *= -1;
-            if (circle.y < 0 || circle.y > height) circle.vy *= -1;
-        });
-        
-        svg.selectAll('circle')
-            .data(circles)
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y);
-        
-        requestAnimationFrame(animate);
-    }
+    // Add value labels
+    g.selectAll('.value-label')
+        .data(features)
+        .enter()
+        .append('text')
+        .attr('class', 'value-label')
+        .attr('y', d => yScale(d.name) + yScale.bandwidth() / 2)
+        .attr('x', d => xScale(d.value) + 5)
+        .attr('dy', '0.35em')
+        .attr('opacity', 0)
+        .text(d => d.value.toFixed(2))
+        .transition()
+        .delay(1000)
+        .duration(500)
+        .attr('opacity', 1);
     
-    animate();
+    // Add axes
+    g.append('g')
+        .attr('transform', `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(xScale));
+    
+    g.append('g')
+        .call(d3.axisLeft(yScale));
 }
 
 // Function to set up guided tours for each visualization

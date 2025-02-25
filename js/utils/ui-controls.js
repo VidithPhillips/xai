@@ -4,7 +4,11 @@
  */
 
 const UIControls = {
-    // Initialize navigation
+    // Store active sections and visualizations for cleanup
+    activeSection: null,
+    activeVisualizations: {},
+    
+    // Initialize navigation with proper cleanup
     initNavigation: function() {
         const navLinks = document.querySelectorAll('nav a');
         
@@ -15,6 +19,11 @@ const UIControls = {
                 // Get the target section ID
                 const targetId = link.getAttribute('href').substring(1);
                 
+                // Clean up resources from the current active section
+                if (this.activeSection) {
+                    this.cleanupSection(this.activeSection);
+                }
+                
                 // Hide all sections
                 document.querySelectorAll('section').forEach(section => {
                     section.classList.remove('active');
@@ -24,11 +33,9 @@ const UIControls = {
                 const targetSection = document.getElementById(targetId);
                 if (targetSection) {
                     targetSection.classList.add('active');
+                    this.activeSection = targetId;
                     
-                    // Force a reflow to ensure proper rendering
-                    void targetSection.offsetWidth;
-                    
-                    // Initialize visualization with delay
+                    // Trigger visualization with delay
                     setTimeout(() => {
                         this.triggerVisualizationForSection(targetId);
                     }, 100);
@@ -267,20 +274,54 @@ const UIControls = {
         });
     },
     
-    // Add a method to clean up resources when leaving a section
+    // Clean up resources when changing sections
     cleanupSection: function(sectionId) {
-        // Clean up any resources that need to be released
-        // This helps prevent memory leaks and performance issues
+        console.log(`Cleaning up section: ${sectionId}`);
         
-        // For example, stop animations that aren't visible
-        if (sectionId === 'intro' && window.introAnimation) {
-            // If we had a way to pause the intro animation, we'd do it here
+        // Clean up the specific visualization
+        switch(sectionId) {
+            case 'neural-networks':
+                if (window.neuralNetworkVis) {
+                    window.neuralNetworkVis.dispose();
+                    window.neuralNetworkVis = null;
+                }
+                break;
+            case 'feature-importance':
+                if (window.featureImportanceVis) {
+                    window.featureImportanceVis.dispose();
+                    window.featureImportanceVis = null;
+                }
+                break;
+            case 'local-explanations':
+                if (window.localExplanationsVis) {
+                    window.localExplanationsVis.dispose();
+                    window.localExplanationsVis = null;
+                }
+                break;
+            case 'counterfactuals':
+                if (window.counterfactualsVis) {
+                    window.counterfactualsVis.dispose();
+                    window.counterfactualsVis = null;
+                }
+                break;
+            case 'intro':
+                // Clean up intro visualization if needed
+                const introContainer = document.getElementById('intro-visualization');
+                if (introContainer) {
+                    introContainer.innerHTML = '';
+                }
+                break;
         }
         
-        // Clean up particle backgrounds if needed
-        if (window.particleBackgrounds && window.particleBackgrounds[sectionId]) {
-            // Pause animations or reduce particle count for hidden sections
-            // This improves performance
+        // Remove any loading indicators
+        const section = document.getElementById(sectionId);
+        if (section) {
+            const loadingIndicators = section.querySelectorAll('.loading-indicator');
+            loadingIndicators.forEach(indicator => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            });
         }
     }
 }; 

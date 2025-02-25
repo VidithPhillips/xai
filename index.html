@@ -12,19 +12,21 @@
 </head>
 <body>
     <header>
-        <div class="logo">
-            <span>XAI</span>
-            <span class="subtitle">Explorer</span>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span>XAI</span>
+                <span class="subtitle">Explorer</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#intro" class="active">Introduction</a></li>
+                    <li><a href="#neural-networks">Neural Networks</a></li>
+                    <li><a href="#feature-importance">Feature Importance</a></li>
+                    <li><a href="#local-explanations">Local Explanations</a></li>
+                    <li><a href="#counterfactuals">Counterfactuals</a></li>
+                </ul>
+            </nav>
         </div>
-        <nav>
-            <ul>
-                <li><a href="#intro" class="active">Introduction</a></li>
-                <li><a href="#neural-networks">Neural Networks</a></li>
-                <li><a href="#feature-importance">Feature Importance</a></li>
-                <li><a href="#local-explanations">Local Explanations</a></li>
-                <li><a href="#counterfactuals">Counterfactuals</a></li>
-            </ul>
-        </nav>
     </header>
 
     <main>
@@ -34,7 +36,7 @@
                     <h1>Understanding Explainable AI</h1>
                     <p class="lead">Explore interactive visualizations to understand how AI models work and how to make them interpretable.</p>
                     
-                    <div class="intro-cards">
+                    <div class="card-grid">
                         <div class="card">
                             <h3>What is XAI?</h3>
                             <p>Explainable AI (XAI) refers to methods and techniques that make AI systems' decisions understandable to humans.</p>
@@ -97,118 +99,124 @@
         </section>
 
         <section id="feature-importance">
-            <div class="content">
-                <h2>Feature Importance</h2>
-                <p class="lead">Understanding which features have the most influence on model predictions.</p>
-                
-                <div class="explanation-box">
-                    <h3>What is Feature Importance?</h3>
-                    <p>Feature importance helps us understand which input variables (features) have the most influence on a model's predictions. This is crucial for:</p>
-                    <ul>
-                        <li><strong>Model Understanding:</strong> Knowing which features drive predictions</li>
-                        <li><strong>Feature Selection:</strong> Identifying which features to keep or remove</li>
-                        <li><strong>Domain Insights:</strong> Gaining knowledge about the problem domain</li>
-                    </ul>
-                </div>
-                
-                <div class="method-selector">
-                    <h3>Importance Methods</h3>
-                    <p>Different methods calculate feature importance in different ways:</p>
+            <div class="section-container">
+                <div class="content">
+                    <h2>Feature Importance</h2>
+                    <p class="lead">Understanding which features have the most influence on model predictions.</p>
                     
-                    <div class="method-options">
-                        <button class="method-btn active" data-method="permutation">
-                            <span class="method-name">Permutation</span>
-                            <span class="method-desc">Measures importance by randomly shuffling feature values</span>
-                        </button>
-                        <button class="method-btn" data-method="shap">
-                            <span class="method-name">SHAP</span>
-                            <span class="method-desc">Uses game theory to distribute prediction impact</span>
-                        </button>
-                        <button class="method-btn" data-method="tree">
-                            <span class="method-name">Tree-based</span>
-                            <span class="method-desc">Calculates importance from decision tree splits</span>
-                        </button>
+                    <div class="explanation-box">
+                        <h3>What is Feature Importance?</h3>
+                        <p>Feature importance helps us understand which input variables (features) have the most influence on a model's predictions. This is crucial for:</p>
+                        <ul>
+                            <li><strong>Model Understanding:</strong> Knowing which features drive predictions</li>
+                            <li><strong>Feature Selection:</strong> Identifying which features to keep or remove</li>
+                            <li><strong>Domain Insights:</strong> Gaining knowledge about the problem domain</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="method-selector">
+                        <h3>Importance Methods</h3>
+                        <p>Different methods calculate feature importance in different ways:</p>
+                        
+                        <div class="method-options">
+                            <button class="method-btn active" data-method="permutation">
+                                <span class="method-name">Permutation</span>
+                                <span class="method-desc">Measures importance by randomly shuffling feature values</span>
+                            </button>
+                            <button class="method-btn" data-method="shap">
+                                <span class="method-name">SHAP</span>
+                                <span class="method-desc">Uses game theory to distribute prediction impact</span>
+                            </button>
+                            <button class="method-btn" data-method="tree">
+                                <span class="method-name">Tree-based</span>
+                                <span class="method-desc">Calculates importance from decision tree splits</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="visualization-guide">
+                        <h3>How to Read the Visualization</h3>
+                        <ul>
+                            <li><strong>Bar Length:</strong> Longer bars indicate more important features</li>
+                            <li><strong>Color Intensity:</strong> Darker colors represent higher importance</li>
+                            <li><strong>Scale:</strong> Importance values range from 0 (no impact) to 1 (highest impact)</li>
+                        </ul>
+                        <p>Try selecting different datasets and methods to see how feature importance changes!</p>
                     </div>
                 </div>
-                
-                <div class="visualization-guide">
-                    <h3>How to Read the Visualization</h3>
-                    <ul>
-                        <li><strong>Bar Length:</strong> Longer bars indicate more important features</li>
-                        <li><strong>Color Intensity:</strong> Darker colors represent higher importance</li>
-                        <li><strong>Scale:</strong> Importance values range from 0 (no impact) to 1 (highest impact)</li>
-                    </ul>
-                    <p>Try selecting different datasets and methods to see how feature importance changes!</p>
+                <div class="visualization-container">
+                    <div id="feature-importance-visualization"></div>
                 </div>
-            </div>
-            <div class="visualization-container">
-                <div id="feature-importance-visualization"></div>
             </div>
         </section>
 
         <section id="local-explanations">
-            <div class="content">
-                <h2>Local Explanations</h2>
-                <p class="lead">Understand why a model made a specific prediction for an individual instance.</p>
-                
-                <div class="explanation">
-                    <h3>Explaining Individual Predictions</h3>
-                    <p>Local explanation techniques help understand why a model made a specific prediction for a single instance.</p>
-                    <p>Methods like LIME and SHAP create simplified, interpretable models around a specific prediction.</p>
+            <div class="section-container">
+                <div class="content">
+                    <h2>Local Explanations</h2>
+                    <p class="lead">Understand why a model made a specific prediction for an individual instance.</p>
                     
-                    <div class="instance-selector">
-                        <h4>Select Instance:</h4>
-                        <select id="instance-selector">
-                            <option value="instance1">Instance #1 (Approved Loan)</option>
-                            <option value="instance2">Instance #2 (Denied Loan)</option>
-                            <option value="instance3">Instance #3 (Borderline Case)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="method-selector">
-                        <h4>Explanation Method:</h4>
-                        <div class="method-options">
-                            <button class="method-btn active" data-method="lime">LIME</button>
-                            <button class="method-btn" data-method="shap">SHAP</button>
-                            <button class="method-btn" data-method="anchors">Anchors</button>
+                    <div class="explanation">
+                        <h3>Explaining Individual Predictions</h3>
+                        <p>Local explanation techniques help understand why a model made a specific prediction for a single instance.</p>
+                        <p>Methods like LIME and SHAP create simplified, interpretable models around a specific prediction.</p>
+                        
+                        <div class="instance-selector">
+                            <h4>Select Instance:</h4>
+                            <select id="instance-selector">
+                                <option value="instance1">Instance #1 (Approved Loan)</option>
+                                <option value="instance2">Instance #2 (Denied Loan)</option>
+                                <option value="instance3">Instance #3 (Borderline Case)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="method-selector">
+                            <h4>Explanation Method:</h4>
+                            <div class="method-options">
+                                <button class="method-btn active" data-method="lime">LIME</button>
+                                <button class="method-btn" data-method="shap">SHAP</button>
+                                <button class="method-btn" data-method="anchors">Anchors</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="visualization-container">
-                <div id="local-explanation-visualization"></div>
+                <div class="visualization-container">
+                    <div id="local-explanations-visualization"></div>
+                </div>
             </div>
         </section>
 
         <section id="counterfactuals">
-            <div class="content">
-                <h2>Counterfactual Explanations</h2>
-                <p class="lead">Explore "what-if" scenarios to understand how to change predictions.</p>
-                
-                <div class="explanation">
-                    <h3>What-If Analysis</h3>
-                    <p>Counterfactual explanations show the smallest change to input features that would result in a different prediction.</p>
-                    <p>These explanations are particularly useful for actionable insights, showing users what they would need to change to get a desired outcome.</p>
+            <div class="section-container">
+                <div class="content">
+                    <h2>Counterfactual Explanations</h2>
+                    <p class="lead">Explore "what-if" scenarios to understand how to change predictions.</p>
                     
-                    <div class="scenario-selector">
-                        <h4>Select Scenario:</h4>
-                        <select id="scenario-selector">
-                            <option value="loan">Loan Application</option>
-                            <option value="medical">Medical Diagnosis</option>
-                            <option value="housing">Housing Price</option>
-                        </select>
-                    </div>
-                    
-                    <div class="interactive-controls">
-                        <h4>Adjust Features:</h4>
-                        <div class="feature-sliders" id="counterfactual-sliders">
-                            <!-- Feature sliders will be dynamically generated -->
+                    <div class="explanation">
+                        <h3>What-If Analysis</h3>
+                        <p>Counterfactual explanations show the smallest change to input features that would result in a different prediction.</p>
+                        <p>These explanations are particularly useful for actionable insights, showing users what they would need to change to get a desired outcome.</p>
+                        
+                        <div class="scenario-selector">
+                            <h4>Select Scenario:</h4>
+                            <select id="scenario-selector">
+                                <option value="loan">Loan Application</option>
+                                <option value="medical">Medical Diagnosis</option>
+                                <option value="housing">Housing Price</option>
+                            </select>
+                        </div>
+                        
+                        <div class="interactive-controls">
+                            <h4>Adjust Features:</h4>
+                            <div class="feature-sliders" id="counterfactual-sliders">
+                                <!-- Feature sliders will be dynamically generated -->
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="visualization-container">
-                <div id="counterfactual-visualization"></div>
+                <div class="visualization-container">
+                    <div id="counterfactuals-visualization"></div>
+                </div>
             </div>
         </section>
     </main>
