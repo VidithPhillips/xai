@@ -4,24 +4,30 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded");
     // Initialize UI controls
     UIControls.initNavigation();
     UIControls.initModals();
     UIControls.initButtons();
     
     // Initialize intro visualization
+    console.log("Initializing intro visualization");
     initIntroVisualization();
     
     // Initialize neural network visualization
+    console.log("Initializing neural network visualization");
     const neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
     
     // Initialize feature importance visualization
+    console.log("Initializing feature importance visualization");
     const featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
     
     // Initialize local explanations visualization
+    console.log("Initializing local explanations visualization");
     const localExplanationsVis = new LocalExplanationsVis('local-explanation-visualization');
     
     // Initialize counterfactuals visualization
+    console.log("Initializing counterfactuals visualization");
     const counterfactualsVis = new CounterfactualsVis('counterfactual-visualization');
 });
 
