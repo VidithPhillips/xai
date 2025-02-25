@@ -162,24 +162,26 @@ nav a {
     color: var(--text-gray);
     text-decoration: none;
     position: relative;
-    transition: color 0.2s;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
 }
 
-nav a::after {
+nav a.active {
+    opacity: 1;
+    color: var(--primary);
+    position: relative;
+}
+
+/* Make underline more visible */
+nav a.active::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -4px;
     left: 0;
-    width: 0;
+    width: 100%;
     height: 2px;
     background: var(--primary);
     box-shadow: var(--glow-primary);
-    transition: width 0.2s;
-}
-
-nav a:hover::after,
-nav a.active::after {
-    width: 100%;
 }
 
 /* Main content layout */
@@ -201,7 +203,7 @@ nav a.active::after {
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-light);
-    text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+    text-shadow: var(--glow-primary);
     margin-bottom: 1.5rem;
     font-weight: 600;
 }
@@ -241,7 +243,7 @@ h2 {
 .card {
     background: var(--bg-dark-50);
     padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border-dark);
     color: var(--text-light);
 }
@@ -252,13 +254,14 @@ h2 {
 }
 
 .card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 0.75rem;
-    color: var(--primary-color);
+    color: var(--primary);
+    text-shadow: var(--glow-primary);
+    margin-bottom: 1rem;
 }
 
 .card p {
-    color: var(--text-secondary);
+    color: var(--text-gray);
+    opacity: 0.95;
     font-size: 0.95rem;
     line-height: 1.7;
     margin-bottom: 1.25rem;
@@ -308,17 +311,11 @@ input[type="range"] {
     height: 6px;
     background: var(--bg-dark-100);
     border-radius: 3px;
-    -webkit-appearance: none;
-    margin: 10px 0;
+    margin: 1rem 0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
     background: var(--primary);
-    border-radius: 50%;
-    cursor: pointer;
     box-shadow: var(--glow-primary);
 }
 
@@ -372,12 +369,12 @@ button, .method-btn, .cta-button {
 
 .method-btn {
     background: var(--bg-dark-100);
-    color: var(--text-light);
     border: 1px solid var(--border-dark);
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
+    color: var(--text-gray);
+    padding: 1rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
 .method-btn:hover {
@@ -388,23 +385,23 @@ button, .method-btn, .cta-button {
 
 .method-btn.active {
     background: var(--primary-dark);
-    color: var(--bg-dark);
+    color: var(--text-light);
     border-color: var(--primary);
     box-shadow: var(--glow-primary);
 }
 
 /* Visualization container */
 .visualization-container {
-    position: relative;
-    z-index: 1;
-    /* Ensure proper stacking context */
-    transform: translateZ(0);
-    min-height: 400px;
+    min-height: 450px;
     width: 100%;
     margin: 2rem 0;
     background: var(--bg-dark-100);
-    border-radius: 0.75rem;
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
 }
 
 @media (min-width: 1024px) {
@@ -439,16 +436,16 @@ button, .method-btn, .cta-button {
 /* Reset section styling to a simpler, more reliable layout */
 section {
     display: none;
-    min-height: calc(100vh - 80px);
-    padding: 4rem 1rem;
-    background-color: var(--bg-primary);
     opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    background: var(--bg-dark);
+    min-height: calc(100vh - 80px);
+    width: 100%;
 }
 
 section.active {
-    display: block; /* Simple block display instead of flex/grid */
+    display: block;
     opacity: 1;
     transform: translateY(0);
 }
@@ -900,7 +897,7 @@ section.active .visualization-container {
 
 /* Dark theme tooltips */
 .tooltip {
-    position: absolute;
+    position: fixed;
     background: var(--bg-dark-50);
     color: var(--text-light);
     padding: 0.75rem;
@@ -909,7 +906,7 @@ section.active .visualization-container {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
-    z-index: 100;
+    z-index: 1000;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--primary-dark);
     border: 1px solid var(--border-dark);
     transform: translateX(-50%) translateY(-100%);
@@ -985,4 +982,14 @@ pre code {
     background: rgba(0, 242, 255, 0.05);
     padding: 1rem;
     border-radius: 0 4px 4px 0;
+}
+
+/* Issue: Animation performance */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 } 

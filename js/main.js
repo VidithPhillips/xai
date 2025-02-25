@@ -40,14 +40,49 @@ function cleanupVisualization(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
+    // Cleanup existing visualization
     const visualization = container.visualization;
     if (visualization && typeof visualization.dispose === 'function') {
         visualization.dispose();
     }
     
+    // Remove event listeners
     removeAllTrackedEventListeners(container);
+    
+    // Clear container
+    container.innerHTML = '';
     container.visualization = null;
 }
+
+// Issue: Global state management is fragile
+// Add proper state management
+const AppState = {
+    activeSection: null,
+    visualizations: new Map(),
+    isTransitioning: false,
+    
+    setActiveSection(sectionId) {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+        
+        const previousSection = this.activeSection;
+        this.activeSection = sectionId;
+        
+        // Cleanup previous visualization
+        if (previousSection) {
+            const prevVis = this.visualizations.get(previousSection);
+            if (prevVis) {
+                prevVis.dispose();
+                this.visualizations.delete(previousSection);
+            }
+        }
+        
+        // Initialize new visualization
+        initVisualizationForSection(sectionId).finally(() => {
+            this.isTransitioning = false;
+        });
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
@@ -57,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initDarkTheme();
         
         // Initialize UI controls
-        UIControls.initNavigation();
         UIControls.initModals();
         UIControls.initButtons();
         
@@ -90,6 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add a fun easter egg
         addEasterEgg();
+        
+        // Fix navigation functionality
+        initNavigation();
+        
+        // Add accessibility improvements
+        initAccessibility();
     } catch (error) {
         console.error("Error initializing application:", error);
         showErrorMessage("There was an error initializing the application. Please check the console for details.");
@@ -209,13 +249,23 @@ function initVisualizationWithContainer(containerId, initFunction) {
 
 // Add error handling for visualizations
 function showVisualizationError(container, error) {
+    // Add retry mechanism and better error reporting
+    const errorMessage = error.message || 'Failed to load visualization';
+    const errorDetails = error.stack ? `<pre class="error-details">${error.stack}</pre>` : '';
+    
     container.innerHTML = `
         <div class="error-message">
             <h4>Visualization Error</h4>
-            <p>${error.message || 'Failed to load visualization'}</p>
-            <button class="retry-button" onclick="retryVisualization('${container.id}')">
-                Retry
-            </button>
+            <p>${errorMessage}</p>
+            ${errorDetails}
+            <div class="error-actions">
+                <button class="retry-button" onclick="retryVisualization('${container.id}')">
+                    Retry
+                </button>
+                <button class="report-button" onclick="reportError('${container.id}', '${errorMessage}')">
+                    Report Issue
+                </button>
+            </div>
         </div>
     `;
 }
@@ -710,23 +760,35 @@ function initTooltips() {
 
 // Add GPU acceleration for animations
 function optimizePerformance() {
-    // Apply will-change property to elements that will animate
-    document.querySelectorAll('.visualization-container').forEach(container => {
-        container.style.willChange = 'transform';
-    });
-    
-    // Apply hardware acceleration to key animations
-    document.querySelectorAll('.bar, .node').forEach(element => {
-        element.style.transform = 'translateZ(0)';
-    });
-    
-    // Cleanup will-change after animations complete to free resources
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-            document.querySelectorAll('[style*="will-change"]').forEach(element => {
-                element.style.willChange = 'auto';
-            });
+    // Add debouncing for resize events
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
         }
+        resizeTimeout = setTimeout(() => {
+            document.querySelectorAll('.visualization-container').forEach(container => {
+                if (container.visualization?.resize) {
+                    container.visualization.resize();
+                }
+            });
+        }, 150);
+    });
+    
+    // Add intersection observer for visibility
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const container = entry.target;
+            if (entry.isIntersecting) {
+                container.visualization?.resume?.();
+            } else {
+                container.visualization?.pause?.();
+            }
+        });
+    });
+    
+    document.querySelectorAll('.visualization-container').forEach(container => {
+        observer.observe(container);
     });
 }
 
@@ -813,4 +875,118 @@ function activateMatrixMode() {
             document.body.removeChild(canvas);
         }, 2000);
     }, 5000);
+}
+
+// Enhanced navigation functionality
+function initNavigation() {
+    const navLinks = document.querySelectorAll('nav a');
+    const sections = document.querySelectorAll('section');
+    
+    function updateActiveSection(hash) {
+        const targetId = hash.replace('#', '');
+        
+        // Add loading state
+        const loadingIndicator = LoadingAnimation.show(targetId);
+        
+        // Ensure previous section transition is complete
+        const previousSection = document.querySelector('section.active');
+        if (previousSection) {
+            return new Promise((resolve) => {
+                const onTransitionEnd = () => {
+                    previousSection.removeEventListener('transitionend', onTransitionEnd);
+                    resolve();
+                };
+                previousSection.addEventListener('transitionend', onTransitionEnd);
+                previousSection.classList.remove('active');
+            }).then(() => {
+                // Update new section
+                const newSection = document.getElementById(targetId);
+                if (newSection) {
+                    newSection.style.display = 'block';
+                    requestAnimationFrame(() => {
+                        newSection.classList.add('active');
+                    });
+                }
+                if (loadingIndicator) {
+                    LoadingAnimation.hide(loadingIndicator);
+                }
+            });
+        }
+    }
+    
+    // Handle click events
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const hash = link.getAttribute('href');
+            window.location.hash = hash;
+            updateActiveSection(hash);
+        });
+    });
+    
+    // Handle initial load and hash changes
+    window.addEventListener('hashchange', () => {
+        updateActiveSection(window.location.hash || '#introduction');
+    });
+    
+    // Handle initial page load
+    updateActiveSection(window.location.hash || '#introduction');
+}
+
+// Initialize visualization for specific section
+function initVisualizationForSection(sectionId) {
+    // Add cleanup before initializing new visualization
+    const oldContainer = document.querySelector('.visualization-container.active');
+    if (oldContainer) {
+        const oldVis = oldContainer.visualization;
+        if (oldVis && typeof oldVis.dispose === 'function') {
+            oldVis.dispose();
+        }
+        removeAllTrackedEventListeners(oldContainer);
+    }
+    
+    // Then initialize new visualization
+    const container = document.querySelector(`#${sectionId} .visualization-container`);
+    if (!container) return;
+    
+    cleanupVisualization(container.id);
+    
+    // Initialize new visualization based on section
+    switch(sectionId) {
+        case 'introduction':
+            initIntroVisualization();
+            break;
+        case 'neural-networks':
+            initNeuralNetworkVisualization();
+            break;
+        case 'feature-importance':
+            window.featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
+            break;
+        case 'local-explanations':
+            window.localExplanationsVis = new LocalExplanationsVis('local-explanations-visualization');
+            break;
+        case 'counterfactuals':
+            window.counterfactualsVis = new CounterfactualsVis('counterfactuals-visualization');
+            break;
+    }
+}
+
+// Add accessibility improvements
+function initAccessibility() {
+    // Add ARIA labels
+    document.querySelectorAll('.visualization-container').forEach(container => {
+        container.setAttribute('role', 'region');
+        container.setAttribute('aria-label', 'Interactive Visualization');
+    });
+    
+    // Add keyboard navigation
+    document.querySelectorAll('.method-btn').forEach(btn => {
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                btn.click();
+            }
+        });
+    });
+} 
 } 
