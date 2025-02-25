@@ -180,6 +180,36 @@ class CounterfactualsVis {
             .style('fill', '#ffffff')
             .style('font-size', '12px');
     }
+
+    setupScenarioButtons() {
+        // Find scenario buttons
+        const scenarioButtons = document.querySelectorAll('.scenario-btn');
+        if (scenarioButtons.length === 0) {
+            console.warn('No scenario buttons found for counterfactuals visualization');
+            return;
+        }
+        
+        // Add click event listeners
+        scenarioButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                scenarioButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Get scenario ID from button
+                const scenarioId = button.dataset.scenario || '1';
+                console.log(`Switching to scenario: ${scenarioId}`);
+                
+                // For now, just use the sample data
+                // this.updateVisualization(this.getSampleData());
+            });
+        });
+        
+        // Set first button as active
+        if (scenarioButtons[0]) {
+            scenarioButtons[0].classList.add('active');
+        }
+    }
 }
 
 window.CounterfactualsVis = CounterfactualsVis; 
