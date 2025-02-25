@@ -5,38 +5,117 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded");
-    // Initialize UI controls
-    UIControls.initNavigation();
-    UIControls.initModals();
-    UIControls.initButtons();
     
+    try {
+        // Initialize UI controls
+        UIControls.initNavigation();
+        UIControls.initModals();
+        UIControls.initButtons();
+        
+        // Initialize visualizations with error handling
+        initVisualizations();
+    } catch (error) {
+        console.error("Error initializing application:", error);
+        showErrorMessage("There was an error initializing the application. Please check the console for details.");
+    }
+});
+
+// Initialize all visualizations with error handling
+function initVisualizations() {
     // Initialize intro visualization
-    console.log("Initializing intro visualization");
-    initIntroVisualization();
+    try {
+        console.log("Initializing intro visualization");
+        initIntroVisualization();
+    } catch (error) {
+        console.error("Error initializing intro visualization:", error);
+        handleVisualizationError('intro-visualization');
+    }
     
     // Initialize neural network visualization
-    console.log("Initializing neural network visualization");
-    const neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
+    try {
+        console.log("Initializing neural network visualization");
+        const neuralNetworkVis = new NeuralNetworkVis('neural-network-visualization');
+    } catch (error) {
+        console.error("Error initializing neural network visualization:", error);
+        handleVisualizationError('neural-network-visualization');
+    }
     
     // Initialize feature importance visualization
-    console.log("Initializing feature importance visualization");
-    const featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
+    try {
+        console.log("Initializing feature importance visualization");
+        const featureImportanceVis = new FeatureImportanceVis('feature-importance-visualization');
+    } catch (error) {
+        console.error("Error initializing feature importance visualization:", error);
+        handleVisualizationError('feature-importance-visualization');
+    }
     
     // Initialize local explanations visualization
-    console.log("Initializing local explanations visualization");
-    const localExplanationsVis = new LocalExplanationsVis('local-explanation-visualization');
+    try {
+        console.log("Initializing local explanations visualization");
+        const localExplanationsVis = new LocalExplanationsVis('local-explanation-visualization');
+    } catch (error) {
+        console.error("Error initializing local explanations visualization:", error);
+        handleVisualizationError('local-explanation-visualization');
+    }
     
     // Initialize counterfactuals visualization
-    console.log("Initializing counterfactuals visualization");
-    const counterfactualsVis = new CounterfactualsVis('counterfactual-visualization');
-});
+    try {
+        console.log("Initializing counterfactuals visualization");
+        const counterfactualsVis = new CounterfactualsVis('counterfactual-visualization');
+    } catch (error) {
+        console.error("Error initializing counterfactuals visualization:", error);
+        handleVisualizationError('counterfactual-visualization');
+    }
+}
+
+// Handle visualization errors by showing a message in the container
+function handleVisualizationError(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = `
+            <div class="visualization-error">
+                <p>Sorry, there was an error loading this visualization.</p>
+                <button class="retry-button">Retry</button>
+            </div>
+        `;
+        
+        const retryButton = container.querySelector('.retry-button');
+        if (retryButton) {
+            retryButton.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+    }
+}
+
+// Show a general error message
+function showErrorMessage(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `
+        <p>${message}</p>
+        <button class="close-error">Close</button>
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    const closeButton = errorDiv.querySelector('.close-error');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            errorDiv.remove();
+        });
+    }
+}
 
 // Create intro visualization with particles
 function initIntroVisualization() {
     const containerId = 'intro-visualization';
     const container = document.getElementById(containerId);
     
-    if (!container) return;
+    if (!container) {
+        console.error("Intro visualization container not found");
+        return;
+    }
     
     // Set up Three.js scene
     const { scene, camera, renderer } = ThreeSetup.createScene(containerId);

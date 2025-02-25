@@ -456,4 +456,20 @@ class CounterfactualsVis {
             this.updateChart();
         });
     }
+    
+    drawChangeBars(changes) {
+        // ... existing code ...
+        
+        // Update the bar width calculation
+        changeBars.append('rect')
+            .attr('x', 0)
+            .attr('y', d => yScale(d.id))
+            .attr('width', d => Math.max(0, xScale(d.importance) * 100)) // Ensure width is never negative
+            .attr('height', yScale.bandwidth())
+            .attr('fill', '#10b981')
+            .attr('rx', 4)
+            .attr('ry', 4);
+        
+        // ... rest of the method ...
+    }
 } 

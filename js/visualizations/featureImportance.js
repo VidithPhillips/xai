@@ -224,22 +224,11 @@ class FeatureImportanceVis {
         bars
             .attr('x', 0)
             .attr('y', d => yScale(d.feature))
-            .attr('width', d => xScale(d.importance))
-            .attr('height', yScale.bandwidth())
-            .attr('fill', d => colorScale(d.importance));
-        
-        // Add new bars
-        bars.enter()
-            .append('rect')
-            .attr('class', 'bar')
-            .attr('x', 0)
-            .attr('y', d => yScale(d.feature))
-            .attr('width', 0) // Start at 0 for animation
+            .attr('width', d => Math.max(0, xScale(d.importance) * 100))
             .attr('height', yScale.bandwidth())
             .attr('fill', d => colorScale(d.importance))
-            .transition()
-            .duration(800)
-            .attr('width', d => xScale(d.importance));
+            .attr('rx', 4)
+            .attr('ry', 4);
         
         // Add value labels
         const labels = this.chart.selectAll('.value-label')
