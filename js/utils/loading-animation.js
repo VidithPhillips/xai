@@ -59,4 +59,7 @@ class LoadingAnimation {
         // Store timeout ID for cleanup
         loadingIndicator.dataset.removeTimeout = removeTimeout;
     }
-} 
+}
+
+// Export to window object
+window.LoadingAnimation = LoadingAnimation; 
