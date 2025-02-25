@@ -41,13 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize particle backgrounds for each section
 function initParticleBackgrounds() {
-    // Different colors and settings for each section - reduced count
+    // Disable particle backgrounds completely
+    return; // Early return to skip particle background initialization
+    
+    // The code below won't execute
     const sections = [
-        { id: 'intro', color: '#6366f1', count: 15 }, // Reduced from 40
-        { id: 'neural-networks', color: '#10b981', count: 12 }, // Reduced from 30
-        { id: 'feature-importance', color: '#f59e0b', count: 10 }, // Reduced from 25
-        { id: 'local-explanations', color: '#8b5cf6', count: 12 }, // Reduced from 35
-        { id: 'counterfactuals', color: '#ef4444', count: 10 } // Reduced from 20
+        { id: 'intro', color: '#6366f1', count: 15 },
+        { id: 'neural-networks', color: '#10b981', count: 12 },
+        { id: 'feature-importance', color: '#f59e0b', count: 10 },
+        { id: 'local-explanations', color: '#8b5cf6', count: 12 },
+        { id: 'counterfactuals', color: '#ef4444', count: 10 }
     ];
     
     sections.forEach(section => {
@@ -55,7 +58,7 @@ function initParticleBackgrounds() {
             window.particleBackgrounds[section.id] = new ParticleBackground(section.id, {
                 particleColor: section.color,
                 particleCount: section.count,
-                lineColor: `${section.color}15` // Even more transparency (15 instead of 33)
+                lineColor: `${section.color}15`
             });
         } catch (error) {
             console.error(`Error initializing particle background for ${section.id}:`, error);
@@ -320,38 +323,21 @@ function createFallbackVisualization(container) {
 
 // Function to set up guided tours for each visualization
 function setupGuidedTours() {
-    // Feature importance tour
+    // Feature importance tour - simplified
     GuidedTour.createTour('feature-importance-visualization', [
         {
-            element: '#feature-importance-visualization .chart-title',
-            title: 'Feature Importance Chart',
-            content: 'This chart shows which features have the most influence on the model predictions.'
-        },
-        {
-            element: '#feature-importance-visualization .bar',
-            title: 'Importance Bars',
-            content: 'Longer bars indicate features with higher importance. The model relies more heavily on these features when making predictions.'
-        },
-        {
-            element: '#feature-importance-visualization .value-label',
-            title: 'Importance Values',
-            content: 'These numbers show the exact importance score for each feature, ranging from 0 to 1.'
+            element: '#feature-importance-visualization',
+            title: 'Feature Importance',
+            content: 'This visualization shows which features have the most influence on the model predictions.'
         }
     ]);
     
-    // Neural network tour
+    // Neural network tour - simplified
     GuidedTour.createTour('neural-network-visualization', [
         {
             element: '#neural-network-visualization',
-            title: 'Neural Network Visualization',
-            content: 'This 3D visualization shows the structure of a neural network with input, hidden, and output layers.'
-        },
-        {
-            element: '#neural-network-controls',
-            title: 'Network Controls',
-            content: 'Use these controls to adjust the network architecture and see how information flows through the network.'
+            title: 'Neural Network',
+            content: 'This 3D visualization shows how neural networks process information through layers of neurons.'
         }
     ]);
-    
-    // Add tours for other visualizations...
 } 

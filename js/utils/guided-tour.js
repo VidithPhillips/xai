@@ -9,23 +9,26 @@ const GuidedTour = {
         const container = document.getElementById(visualizationId);
         if (!container) return;
         
-        // Create tour button with improved styling
+        // Create a more subtle tour button
         const tourButton = document.createElement('button');
         tourButton.className = 'tour-button';
-        tourButton.textContent = 'Take a Tour';
+        tourButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Tour';
         tourButton.style.position = 'absolute';
         tourButton.style.top = '10px';
         tourButton.style.right = '10px';
         tourButton.style.zIndex = '100';
-        tourButton.style.padding = '8px 12px';
-        tourButton.style.background = '#4f46e5';
-        tourButton.style.color = 'white';
-        tourButton.style.border = 'none';
+        tourButton.style.padding = '6px 12px';
+        tourButton.style.background = 'rgba(255, 255, 255, 0.9)';
+        tourButton.style.color = 'var(--primary-color)';
+        tourButton.style.border = '1px solid var(--border-color)';
         tourButton.style.borderRadius = '4px';
         tourButton.style.cursor = 'pointer';
         tourButton.style.fontSize = '14px';
         tourButton.style.fontWeight = '500';
-        tourButton.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        tourButton.style.display = 'flex';
+        tourButton.style.alignItems = 'center';
+        tourButton.style.gap = '6px';
+        tourButton.style.boxShadow = 'var(--shadow-sm)';
         
         container.style.position = 'relative';
         container.appendChild(tourButton);
