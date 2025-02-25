@@ -272,7 +272,6 @@
     <script src="js/visualizations/counterfactuals-vis.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Check if all required scripts are loaded
         window.addEventListener('load', () => {
             const requiredClasses = [
                 'IntroAnimation',
@@ -282,13 +281,12 @@
                 'CounterfactualsVis'
             ];
             
-            const missingClasses = requiredClasses.filter(className => 
-                typeof window[className] === 'undefined'
-            );
-            
-            if (missingClasses.length > 0) {
-                console.error('Missing required classes:', missingClasses);
-                alert('Some required components failed to load. Please refresh the page.');
+            const missing = requiredClasses.filter(cls => typeof window[cls] === 'undefined');
+            if (missing.length > 0) {
+                console.error('Missing required classes:', missing);
+                alert("Some required components failed to load. Please refresh the page.");
+            } else {
+                console.log('All visualization classes loaded successfully!');
             }
         });
     </script>

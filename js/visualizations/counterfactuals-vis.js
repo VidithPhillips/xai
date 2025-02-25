@@ -43,4 +43,6 @@ class CounterfactualsVis {
             .attr('text-anchor', 'middle')
             .text('Counterfactuals Visualization Placeholder');
     }
-} 
+}
+
+window.CounterfactualsVis = CounterfactualsVis; 

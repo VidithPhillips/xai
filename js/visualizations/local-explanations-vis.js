@@ -113,4 +113,6 @@ class LocalExplanationsVis {
             { feature: "Age", effect: 0.15 }
         ];
     }
-} 
+}
+
+window.LocalExplanationsVis = LocalExplanationsVis; 

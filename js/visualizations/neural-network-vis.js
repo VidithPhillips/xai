@@ -388,4 +388,7 @@ class NeuralNetworkVis {
         
         this.renderer.setSize(this.width, this.height);
     }
-} 
+}
+
+// Add this at the end of the file
+window.NeuralNetworkVis = NeuralNetworkVis; 

@@ -164,4 +164,7 @@ class IntroAnimation {
             this.container.innerHTML = '';
         }
     }
-} 
+}
+
+// Add this at the end of the file
+window.IntroAnimation = IntroAnimation; 
