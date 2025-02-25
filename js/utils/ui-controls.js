@@ -54,7 +54,7 @@ class UIControls {
         });
 
         // Set first buttons as active
-        document.querySelectorAll('.instance-buttons, .scenario-buttons').forEach(container => {
+        document.querySelectorAll('.method-buttons, .instance-buttons, .scenario-buttons').forEach(container => {
             const firstButton = container.querySelector('button');
             if (firstButton) {
                 firstButton.classList.add('active');
@@ -90,37 +90,66 @@ class UIControls {
             this.addTrackedEventListener(link, 'click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href').substring(1);
+                window.location.hash = targetId;
                 this.activateSection(targetId);
             });
+        });
+        
+        // Handle initial section from hash
+        const initialSection = window.location.hash.substring(1) || 'introduction';
+        this.activateSection(initialSection);
+        
+        // Handle hash changes
+        window.addEventListener('hashchange', () => {
+            const sectionId = window.location.hash.substring(1) || 'introduction';
+            this.activateSection(sectionId);
         });
     }
 
     static activateSection(sectionId) {
-        if (this.activeSection === sectionId) return;
+        if (!sectionId || this.activeSection === sectionId) return;
         
-        // Cleanup previous section
-        if (this.activeSection) {
-            const prevVis = this.activeVisualizations.get(this.activeSection);
-            if (prevVis && typeof prevVis.dispose === 'function') {
-                prevVis.dispose();
+        try {
+            console.log(`Activating section: ${sectionId}`);
+            
+            // Cleanup previous section
+            if (this.activeSection) {
+                const prevVis = this.activeVisualizations.get(this.activeSection);
+                if (prevVis && typeof prevVis.dispose === 'function') {
+                    try {
+                        prevVis.dispose();
+                    } catch (error) {
+                        console.error(`Error disposing visualization for ${this.activeSection}:`, error);
+                    }
+                }
+                this.activeVisualizations.delete(this.activeSection);
             }
-            this.activeVisualizations.delete(this.activeSection);
-        }
 
-        // Update active section
-        this.activeSection = sectionId;
-        
-        // Update UI
-        document.querySelectorAll('section').forEach(section => {
-            section.classList.toggle('active', section.id === sectionId);
-        });
+            // Update active section
+            this.activeSection = sectionId;
+            
+            // Update UI
+            document.querySelectorAll('section').forEach(section => {
+                const isActive = section.id === sectionId;
+                section.style.display = isActive ? 'block' : 'none';
+                section.classList.toggle('active', isActive);
+            });
 
-        // Initialize new visualization
-        if (window.visualizationRegistry) {
-            const vis = window.visualizationRegistry.create(sectionId);
-            if (vis) {
-                this.activeVisualizations.set(sectionId, vis);
+            // Initialize new visualization after section is visible
+            if (window.visualizationRegistry) {
+                setTimeout(() => {
+                    try {
+                        const vis = window.visualizationRegistry.create(sectionId);
+                        if (vis) {
+                            this.activeVisualizations.set(sectionId, vis);
+                        }
+                    } catch (error) {
+                        console.error(`Error creating visualization for ${sectionId}:`, error);
+                    }
+                }, 100);
             }
+        } catch (error) {
+            console.error('Error activating section:', error);
         }
     }
 }

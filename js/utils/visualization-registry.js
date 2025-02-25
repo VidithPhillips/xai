@@ -5,6 +5,7 @@ class VisualizationRegistry {
     constructor() {
         this.visualizations = new Map();
         this.instances = new Map();
+        console.log('VisualizationRegistry initialized');
     }
     
     register(sectionId, VisualizationClass) {
@@ -20,6 +21,8 @@ class VisualizationRegistry {
     }
     
     create(sectionId) {
+        console.log(`Creating visualization for section: ${sectionId}`);
+        
         const containerMap = {
             'introduction': 'intro-visualization',
             'neural-networks': 'neural-network-visualization',
@@ -44,6 +47,7 @@ class VisualizationRegistry {
         }
 
         try {
+            console.log(`Instantiating ${sectionId} visualization in container ${containerId}`);
             const instance = new VisualizationClass(containerId);
             this.instances.set(sectionId, instance);
             return instance;
@@ -56,9 +60,18 @@ class VisualizationRegistry {
     dispose(sectionId) {
         const instance = this.instances.get(sectionId);
         if (instance && typeof instance.dispose === 'function') {
-            instance.dispose();
+            try {
+                console.log(`Disposing visualization for section: ${sectionId}`);
+                instance.dispose();
+            } catch (error) {
+                console.error(`Error disposing visualization for ${sectionId}:`, error);
+            }
         }
         this.instances.delete(sectionId);
+    }
+    
+    getActiveCount() {
+        return this.instances.size;
     }
 }
 
@@ -71,12 +84,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const registry = window.visualizationRegistry;
         
-        if (window.IntroAnimation) registry.register('introduction', window.IntroAnimation);
-        if (window.NeuralNetworkVis) registry.register('neural-networks', window.NeuralNetworkVis);
-        if (window.FeatureImportanceVis) registry.register('feature-importance', window.FeatureImportanceVis);
-        if (window.LocalExplanationsVis) registry.register('local-explanations', window.LocalExplanationsVis);
-        if (window.CounterfactualsVis) registry.register('counterfactuals', window.CounterfactualsVis);
+        if (window.IntroAnimation) {
+            registry.register('introduction', window.IntroAnimation);
+        } else {
+            console.warn('IntroAnimation class not found');
+        }
         
-        console.log('Visualization registry initialized');
+        if (window.NeuralNetworkVis) {
+            registry.register('neural-networks', window.NeuralNetworkVis);
+        } else {
+            console.warn('NeuralNetworkVis class not found');
+        }
+        
+        if (window.FeatureImportanceVis) {
+            registry.register('feature-importance', window.FeatureImportanceVis);
+        } else {
+            console.warn('FeatureImportanceVis class not found');
+        }
+        
+        if (window.LocalExplanationsVis) {
+            registry.register('local-explanations', window.LocalExplanationsVis);
+        } else {
+            console.warn('LocalExplanationsVis class not found');
+        }
+        
+        if (window.CounterfactualsVis) {
+            registry.register('counterfactuals', window.CounterfactualsVis);
+        } else {
+            console.warn('CounterfactualsVis class not found');
+        }
+        
+        console.log('Visualization registry initialized with classes');
     }, 100);
 }); 

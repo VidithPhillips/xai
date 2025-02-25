@@ -3,275 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explainable AI - Interactive Learning Platform</title>
+    <title>XAI Explorer</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.2/d3.min.js"></script>
+    
+    <!-- External libraries -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/curves/CubicBezierCurve3.js"></script>
-</head>
-<body>
-    <header>
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <span>XAI</span>
-                <span class="subtitle">Explorer</span>
-            </a>
-            <nav>
-                <ul>
-                    <li><a href="#introduction">Introduction</a></li>
-                    <li><a href="#neural-networks">Neural Networks</a></li>
-                    <li><a href="#feature-importance">Feature Importance</a></li>
-                    <li><a href="#local-explanations">Local Explanations</a></li>
-                    <li><a href="#counterfactuals">Counterfactuals</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section id="introduction" class="active">
-            <div class="section-container">
-                <div class="content">
-                    <h1>Understanding Explainable AI</h1>
-                    <p class="lead">Explore interactive visualizations to understand how AI models work and how to make them interpretable.</p>
-                    
-                    <div class="card-grid">
-                        <div class="card">
-                            <h3>What is XAI?</h3>
-                            <p>Explainable AI (XAI) refers to methods and techniques that make AI systems' decisions understandable to humans.</p>
-                        </div>
-                        <div class="card">
-                            <h3>Why is it important?</h3>
-                            <p>As AI systems make more critical decisions, understanding how they work becomes essential for trust, fairness, and safety.</p>
-                        </div>
-                        <div class="card">
-                            <h3>How to explore</h3>
-                            <p>Navigate through the sections using the menu. Each section contains interactive 3D visualizations you can manipulate.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="cta-container">
-                        <button class="cta-button" id="start-exploring">Start Exploring</button>
-                    </div>
-                </div>
-                <div id="intro-visualization" class="visualization-container"></div>
-            </div>
-        </section>
-
-        <section id="neural-networks">
-            <div class="section-container">
-                <div class="content">
-                    <h2>Neural Networks Visualization</h2>
-                    <p class="lead">Understand how neural networks process information through layers of neurons.</p>
-                    
-                    <div class="explanation">
-                        <h3>How Neural Networks Work</h3>
-                        <p>Neural networks consist of interconnected layers of neurons that transform input data through weighted connections and activation functions.</p>
-                        <p>The "black box" nature of neural networks is one of the main challenges that XAI techniques aim to address.</p>
-                        
-                        <div class="controls">
-                            <div class="control-group">
-                                <label for="nn-layers">Number of Layers:</label>
-                                <input type="range" id="nn-layers" min="2" max="5" value="3">
-                            </div>
-                            <div class="control-group">
-                                <label for="nn-neurons">Neurons per Layer:</label>
-                                <input type="range" id="nn-neurons" min="3" max="10" value="5">
-                            </div>
-                            <div class="control-group">
-                                <label for="nn-activation">Activation Function:</label>
-                                <select id="nn-activation">
-                                    <option value="relu">ReLU</option>
-                                    <option value="sigmoid">Sigmoid</option>
-                                    <option value="tanh">Tanh</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="neural-network-visualization" class="visualization-container"></div>
-            </div>
-        </section>
-
-        <section id="feature-importance">
-            <div class="section-container">
-                <div class="content">
-                    <h2>Feature Importance</h2>
-                    <p class="lead">Understanding which features have the most influence on model predictions.</p>
-                    
-                    <div class="explanation-box">
-                        <h3>What is Feature Importance?</h3>
-                        <p>Feature importance helps us understand which input variables (features) have the most influence on a model's predictions. This is crucial for:</p>
-                        <ul>
-                            <li><strong>Model Understanding:</strong> Knowing which features drive predictions</li>
-                            <li><strong>Feature Selection:</strong> Identifying which features to keep or remove</li>
-                            <li><strong>Domain Insights:</strong> Gaining knowledge about the problem domain</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="method-selector">
-                        <h3>Importance Methods</h3>
-                        <p>Different methods calculate feature importance in different ways:</p>
-                        
-                        <div class="method-options">
-                            <button class="method-btn active" data-method="permutation">
-                                <span class="method-name">Permutation</span>
-                                <span class="method-desc">Measures importance by randomly shuffling feature values</span>
-                            </button>
-                            <button class="method-btn" data-method="shap">
-                                <span class="method-name">SHAP</span>
-                                <span class="method-desc">Uses game theory to distribute prediction impact</span>
-                            </button>
-                            <button class="method-btn" data-method="tree">
-                                <span class="method-name">Tree-based</span>
-                                <span class="method-desc">Calculates importance from decision tree splits</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="visualization-guide">
-                        <h3>How to Read the Visualization</h3>
-                        <ul>
-                            <li><strong>Bar Length:</strong> Longer bars indicate more important features</li>
-                            <li><strong>Color Intensity:</strong> Darker colors represent higher importance</li>
-                            <li><strong>Scale:</strong> Importance values range from 0 (no impact) to 1 (highest impact)</li>
-                        </ul>
-                        <p>Try selecting different datasets and methods to see how feature importance changes!</p>
-                    </div>
-                </div>
-                <div id="feature-importance-visualization" class="visualization-container"></div>
-            </div>
-        </section>
-
-        <section id="local-explanations">
-            <div class="section-container">
-                <div class="content">
-                    <h2>Local Explanations</h2>
-                    <p class="lead">Understand why a model made a specific prediction for an individual instance.</p>
-                    
-                    <div class="explanation">
-                        <h3>Explaining Individual Predictions</h3>
-                        <p>Local explanation techniques help understand why a model made a specific prediction for a single instance.</p>
-                        <p>Methods like LIME and SHAP create simplified, interpretable models around a specific prediction.</p>
-                        
-                        <div class="instance-selector">
-                            <h4>Select Instance:</h4>
-                            <div class="instance-buttons">
-                                <button class="instance-btn active" data-instance="1">Instance #1 (Approved)</button>
-                                <button class="instance-btn" data-instance="2">Instance #2 (Denied)</button>
-                                <button class="instance-btn" data-instance="3">Instance #3 (Borderline)</button>
-                            </div>
-                        </div>
-                        
-                        <div class="method-selector">
-                            <h4>Explanation Method:</h4>
-                            <div class="method-options">
-                                <button class="method-btn active" data-method="lime">LIME</button>
-                                <button class="method-btn" data-method="shap">SHAP</button>
-                                <button class="method-btn" data-method="anchors">Anchors</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="local-explanations-visualization" class="visualization-container"></div>
-            </div>
-        </section>
-
-        <section id="counterfactuals">
-            <div class="section-container">
-                <div class="content">
-                    <h2>Counterfactual Explanations</h2>
-                    <p class="lead">Explore "what-if" scenarios to understand how to change predictions.</p>
-                    
-                    <div class="explanation">
-                        <h3>What-If Analysis</h3>
-                        <p>Counterfactual explanations show how changing input values would affect the model's prediction.</p>
-                        <p>Use the sliders below to adjust feature values and see the impact on the prediction in real-time.</p>
-                        
-                        <div class="current-prediction">
-                            <h4>Current Prediction: <span id="prediction-value">Loan Denied</span></h4>
-                            <div class="prediction-meter">
-                                <div class="prediction-fill" style="width: 40%;"></div>
-                                <div class="prediction-threshold"></div>
-                            </div>
-                            <p class="prediction-label">Probability: <span id="prediction-probability">40%</span></p>
-                        </div>
-                        
-                        <div class="scenario-selector">
-                            <h4>Select Scenario:</h4>
-                            <div class="scenario-buttons">
-                                <button class="scenario-btn active" data-scenario="1">Scenario #1</button>
-                                <button class="scenario-btn" data-scenario="2">Scenario #2</button>
-                                <button class="scenario-btn" data-scenario="3">Scenario #3</button>
-                            </div>
-                        </div>
-                        
-                        <div class="feature-controls">
-                            <h4>Adjust Features:</h4>
-                            <div class="feature-sliders" id="counterfactual-sliders">
-                                <!-- Feature sliders will be dynamically generated -->
-                            </div>
-                        </div>
-                        
-                        <div class="counterfactual-insight">
-                            <h4>Key Insight:</h4>
-                            <p id="counterfactual-message">Increasing your credit score by 50 points would change the prediction to "Loan Approved".</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="counterfactuals-visualization" class="visualization-container"></div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-logo">
-                <span>XAI Explorer</span>
-            </div>
-            <div class="footer-links">
-                <a href="https://github.com/VidithPhillips/xai" target="_blank">GitHub Repository</a>
-                <a href="#" id="about-link">About This Project</a>
-                <a href="#" id="resources-link">Additional Resources</a>
-            </div>
-            <div class="footer-credit">
-                <p>Created by Vidith Phillips</p>
-            </div>
-        </div>
-    </footer>
-
-    <div class="modal" id="about-modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>About This Project</h2>
-            <p>This interactive learning platform was created to help people understand Explainable AI concepts through visual, hands-on learning.</p>
-            <p>The visualizations are built using Three.js and D3.js, with educational content based on current research in the field of XAI.</p>
-            <p>This is an open-source project, and contributions are welcome on the <a href="https://github.com/VidithPhillips/xai" target="_blank">GitHub repository</a>.</p>
-        </div>
-    </div>
-
-    <div class="modal" id="resources-modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Additional Resources</h2>
-            <ul>
-                <li><a href="https://christophm.github.io/interpretable-ml-book/" target="_blank">Interpretable Machine Learning Book</a></li>
-                <li><a href="https://github.com/slundberg/shap" target="_blank">SHAP (SHapley Additive exPlanations)</a></li>
-                <li><a href="https://github.com/marcotcr/lime" target="_blank">LIME (Local Interpretable Model-agnostic Explanations)</a></li>
-                <li><a href="https://distill.pub/2018/building-blocks/" target="_blank">The Building Blocks of Interpretability</a></li>
-                <li><a href="https://pair.withgoogle.com/explorables/" target="_blank">Google PAIR Explorables</a></li>
-            </ul>
-        </div>
-    </div>
-
+    
     <!-- Utility scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/curves/CubicBezierCurve3.js"></script>
     <script src="js/utils/loading-animation.js"></script>
     <script src="js/utils/three-setup.js"></script>
     <script src="js/utils/orbit-controls-fallback.js"></script>
@@ -282,34 +22,102 @@
     <script src="js/utils/performance-monitor.js"></script>
     <script src="js/utils/state-manager.js"></script>
     <script src="js/utils/visualization-registry.js"></script>
-
+    
     <!-- Visualization scripts -->
     <script src="js/visualizations/intro-animation.js"></script>
     <script src="js/visualizations/neural-network-vis.js"></script>
     <script src="js/visualizations/feature-importance-vis.js"></script>
     <script src="js/visualizations/local-explanations-vis.js"></script>
     <script src="js/visualizations/counterfactuals-vis.js"></script>
-
+    
     <!-- Main script -->
     <script src="js/main.js"></script>
-    <script>
-        window.addEventListener('load', () => {
-            const requiredClasses = [
-                'IntroAnimation',
-                'NeuralNetworkVis',
-                'FeatureImportanceVis',
-                'LocalExplanationsVis',
-                'CounterfactualsVis'
-            ];
-            
-            const missing = requiredClasses.filter(cls => typeof window[cls] === 'undefined');
-            if (missing.length > 0) {
-                console.error('Missing required classes:', missing);
-                alert("Some required components failed to load. Please refresh the page.");
-            } else {
-                console.log('All visualization classes loaded successfully!');
-            }
-        });
-    </script>
+</head>
+<body>
+    <header>
+        <div class="logo">XAI Explorer</div>
+        <nav>
+            <a href="#introduction">Introduction</a>
+            <a href="#neural-networks">Neural Networks</a>
+            <a href="#feature-importance">Feature Importance</a>
+            <a href="#local-explanations">Local Explanations</a>
+            <a href="#counterfactuals">Counterfactuals</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="introduction" class="active">
+            <div class="section-container">
+                <div class="content">
+                    <h1>Understanding AI Decisions</h1>
+                    <p>Explore how AI makes decisions and learn about different explanation methods.</p>
+                    <div id="intro-visualization" class="visualization-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="neural-networks">
+            <div class="section-container">
+                <div class="content">
+                    <h2>Neural Networks</h2>
+                    <p>Understand how neural networks process information.</p>
+                    <div class="controls">
+                        <label>Layers: <input type="range" id="nn-layers" min="2" max="5" value="3"></label>
+                        <label>Neurons: <input type="range" id="nn-neurons" min="3" max="10" value="5"></label>
+                    </div>
+                    <div id="neural-network-visualization" class="visualization-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="feature-importance">
+            <div class="section-container">
+                <div class="content">
+                    <h2>Feature Importance</h2>
+                    <p>Learn which features influence the model's decisions.</p>
+                    <div class="method-buttons">
+                        <button class="method-btn" data-method="permutation">Permutation</button>
+                        <button class="method-btn" data-method="shap">SHAP</button>
+                        <button class="method-btn" data-method="lime">LIME</button>
+                    </div>
+                    <div id="feature-importance-visualization" class="visualization-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="local-explanations">
+            <div class="section-container">
+                <div class="content">
+                    <h2>Local Explanations</h2>
+                    <p>Explore how specific predictions are made.</p>
+                    <div class="instance-buttons">
+                        <button class="instance-btn" data-instance="1">Instance 1</button>
+                        <button class="instance-btn" data-instance="2">Instance 2</button>
+                        <button class="instance-btn" data-instance="3">Instance 3</button>
+                    </div>
+                    <div id="local-explanations-visualization" class="visualization-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="counterfactuals">
+            <div class="section-container">
+                <div class="content">
+                    <h2>Counterfactuals</h2>
+                    <p>Discover what changes would lead to different outcomes.</p>
+                    <div class="scenario-buttons">
+                        <button class="scenario-btn" data-scenario="1">Scenario 1</button>
+                        <button class="scenario-btn" data-scenario="2">Scenario 2</button>
+                        <button class="scenario-btn" data-scenario="3">Scenario 3</button>
+                    </div>
+                    <div id="counterfactuals-visualization" class="visualization-container"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>XAI Explorer - An interactive learning platform for Explainable AI</p>
+    </footer>
 </body>
 </html> 

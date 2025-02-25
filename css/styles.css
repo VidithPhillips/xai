@@ -396,7 +396,11 @@ button, .method-btn, .cta-button {
     width: 100%;
     min-height: 400px;
     position: relative;
-    background-color: rgba(0, 0, 0, 0.2); /* Temporary to see container */
+    display: block;
+    background: var(--bg-darker);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0;
 }
 
 #intro-visualization,
@@ -690,36 +694,32 @@ footer {
 
 /* Enhanced error message styling */
 .error-message {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    padding: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
     color: var(--text-light);
-    background-color: rgba(255, 0, 0, 0.1);
-    border: 1px solid rgba(255, 0, 0, 0.3);
-    border-radius: 8px;
+    padding: 2rem;
 }
 
 .error-message h4 {
-    color: #ff5555;
+    color: var(--error);
     margin-bottom: 1rem;
 }
 
 .error-message button {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background-color: var(--primary-dark);
-    color: var(--text-light);
-    border: none;
     border-radius: 4px;
+    background: var(--primary);
+    color: white;
+    border: none;
     cursor: pointer;
 }
 
 .error-message button:hover {
-    background-color: var(--primary);
+    background: var(--primary-dark);
 }
 
 /* Fixed responsive design */
