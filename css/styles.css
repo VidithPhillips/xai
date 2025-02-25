@@ -982,4 +982,11 @@ pre code {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* Add this to ensure containers are visible when debugging */
+.visualization-container.debug {
+    border: 2px solid red;
+    min-height: 400px !important;
+    width: 100% !important;
 } 

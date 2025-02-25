@@ -157,6 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Call handleHashChange on initial page load
         handleHashChange();
+        
+        // Debug all containers
+        debugAllContainers();
     } catch (error) {
         console.error("Error initializing application:", error);
         showErrorMessage("There was an error initializing the application. Please check the console for details.");
@@ -415,7 +418,7 @@ function createFallbackVisualization(containerId, text) {
     if (!container) return;
     
     container.innerHTML = `
-        <svg width="100%" height="100%" viewBox="0 0 400 300">
+        <svg width="100%" height="100%" viewBox="0 0 800 400">
             <rect width="100%" height="100%" fill="#1e1e2e" />
             <text x="50%" y="50%" text-anchor="middle" fill="#ffffff" font-size="16px">${text}</text>
         </svg>
@@ -925,18 +928,36 @@ function initVisualizationForSection(sectionId) {
         return;
     }
     
-    console.log('Container dimensions:', container.clientWidth, 'x', container.clientHeight);
+    // Force container to have dimensions
+    container.style.width = '100%';
+    container.style.minHeight = '400px';
+    container.style.display = 'block';
     
-    // Ensure container has dimensions before initializing
+    // Force layout recalculation
+    container.offsetHeight; // This triggers a reflow
+    
+    console.log('Container dimensions after forcing:', container.clientWidth, 'x', container.clientHeight);
+    
+    // If dimensions are still zero, use fixed dimensions
     if (container.clientWidth === 0 || container.clientHeight === 0) {
-        console.warn(`Container ${containerId} has zero dimensions, forcing minimum dimensions`);
-        container.style.width = '100%';
-        container.style.minHeight = '400px';
-        // Try again after a short delay
-        setTimeout(() => initVisualizationForSection(sectionId), 200);
+        console.warn(`Container ${containerId} still has zero dimensions, using fixed dimensions`);
+        // Create a wrapper with fixed dimensions
+        container.innerHTML = `<div id="${containerId}-wrapper" style="width:800px;height:400px;position:relative;"></div>`;
+        const wrapperId = `${containerId}-wrapper`;
+        
+        // Use the wrapper instead
+        setTimeout(() => {
+            createVisualizationInContainer(sectionId, wrapperId);
+        }, 50);
         return;
     }
     
+    // Create visualization in the original container
+    createVisualizationInContainer(sectionId, containerId);
+}
+
+// Separate function to create the visualization
+function createVisualizationInContainer(sectionId, containerId) {
     // Use LoadingAnimation if it exists
     let loadingIndicator = null;
     if (typeof window.LoadingAnimation !== 'undefined') {
@@ -944,7 +965,7 @@ function initVisualizationForSection(sectionId) {
     }
     
     try {
-        console.log('Creating visualization for section:', sectionId);
+        console.log('Creating visualization for section:', sectionId, 'in container:', containerId);
         let visualizationCreated = false;
         
         switch (sectionId) {
@@ -990,12 +1011,15 @@ function initVisualizationForSection(sectionId) {
         }
     } catch (error) {
         console.error('Error initializing visualization:', error);
-        container.innerHTML = `
-            <div class="error-message">
-                <h4>Visualization Error</h4>
-                <p>${error.message || 'Failed to load visualization'}</p>
-            </div>
-        `;
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="error-message">
+                    <h4>Visualization Error</h4>
+                    <p>${error.message || 'Failed to load visualization'}</p>
+                </div>
+            `;
+        }
     } finally {
         // Hide loading indicator if it exists
         if (loadingIndicator && typeof window.LoadingAnimation !== 'undefined') {
@@ -1039,4 +1063,41 @@ function handleNavigation(targetSectionId) {
             initVisualizationForSection(targetSectionId);
         }, 50);
     }
+}
+
+// Add this function to debug container visibility
+function debugAllContainers() {
+    const containers = [
+        'intro-visualization',
+        'neural-network-visualization',
+        'feature-importance-visualization',
+        'local-explanations-visualization',
+        'counterfactuals-visualization'
+    ];
+    
+    containers.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            // Add debug class
+            container.classList.add('debug');
+            
+            // Log dimensions
+            console.log(`Container #${id} dimensions:`, container.clientWidth, 'x', container.clientHeight);
+            
+            // Force dimensions if zero
+            if (container.clientWidth === 0 || container.clientHeight === 0) {
+                container.style.width = '100%';
+                container.style.minHeight = '400px';
+                container.style.display = 'block';
+                
+                // Force layout recalculation
+                container.offsetHeight;
+                
+                console.log(`Container #${id} dimensions after forcing:`, 
+                    container.clientWidth, 'x', container.clientHeight);
+            }
+        } else {
+            console.error(`Container #${id} not found`);
+        }
+    });
 } 

@@ -177,37 +177,36 @@ class FeatureImportanceVis {
     }
 
     createChart() {
-        // Generate data first
-        const data = this.generateData();
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 400;
         
-        const containerWidth = this.container.clientWidth;
-        const containerHeight = this.container.clientHeight;
+        // Use larger margins to prevent text overlap
+        const margin = { top: 30, right: 30, bottom: 50, left: 150 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
         
-        if (containerWidth < 100 || containerHeight < 100) {
-            console.warn("Container dimensions too small for visualization");
-            setTimeout(() => this.createChart(), 100);
-            return;
+        // Create or get sample data if not available
+        if (!this.data) {
+            this.data = this.generateData();
         }
         
-        const width = containerWidth;
-        const height = containerHeight;
-        const margin = { top: 20, right: 30, bottom: 40, left: 120 };
-        const innerWidth = Math.max(0, width - margin.left - margin.right);
-        const innerHeight = Math.max(0, height - margin.top - margin.bottom);
+        // Find the maximum absolute value for symmetric domain
+        const maxValue = Math.max(
+            Math.abs(d3.min(this.data, d => d.importance)),
+            Math.abs(d3.max(this.data, d => d.importance))
+        );
         
-        const minVal = d3.min(data, d => d.importance);
-        const maxVal = d3.max(data, d => d.importance);
-        
-        // Ensure domain includes 0 and handles negative values properly
+        // Create scales with symmetric domain
         this.xScale = d3.scaleLinear()
-            .domain([Math.min(0, minVal), Math.max(0, maxVal)])
+            .domain([-maxValue * 1.2, maxValue * 1.2])
             .range([0, innerWidth]);
         
         this.yScale = d3.scaleBand()
-            .domain(data.map(d => d.feature))
+            .domain(this.data.map(d => d.feature))
             .range([0, innerHeight])
             .padding(0.2);
         
+        // Create SVG container
         this.svg = d3.select(this.container)
             .append('svg')
             .attr('width', width)
@@ -215,40 +214,71 @@ class FeatureImportanceVis {
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
         
-        // Create bars
+        // Create bars with guaranteed positive width
         this.svg.selectAll('.bar')
-            .data(data)
+            .data(this.data)
             .enter()
             .append('rect')
-            .attr('class', d => d.importance < 0 ? 'bar negative-bar' : 'bar positive-bar')
+            .attr('class', 'bar')
             .attr('x', d => d.importance < 0 ? this.xScale(d.importance) : this.xScale(0))
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
             .attr('width', d => Math.abs(this.xScale(d.importance) - this.xScale(0)))
-            .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
+            .attr('fill', d => d.importance >= 0 ? '#4ade80' : '#f87171')
+            .attr('filter', 'url(#glow)');
         
-        // Add value labels
-        this.svg.selectAll('.value-label')
-            .data(data)
+        // Add feature labels
+        this.svg.selectAll('.feature-label')
+            .data(this.data)
             .enter()
             .append('text')
-            .attr('class', 'value-label')
+            .attr('class', 'feature-label')
+            .attr('x', d => d.importance < 0 ? this.xScale(d.importance) - 5 : this.xScale(0) + 5)
             .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
             .attr('dy', '0.35em')
-            .attr('x', d => this.xScale(d.importance) + (d.importance < 0 ? -5 : 5))
             .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
-            .attr('fill', '#ffffff')
-            .text(d => d.importance.toFixed(2));
+            .text(d => d.feature)
+            .style('fill', '#ffffff')
+            .style('font-size', '12px');
         
-        // Add axes
+        // Add importance values
+        this.svg.selectAll('.importance-value')
+            .data(this.data)
+            .enter()
+            .append('text')
+            .attr('class', 'importance-value')
+            .attr('x', d => d.importance < 0 ? this.xScale(0) - 5 : this.xScale(d.importance) + 5)
+            .attr('y', d => this.yScale(d.feature) + this.yScale.bandwidth() / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', d => d.importance < 0 ? 'end' : 'start')
+            .text(d => d.importance.toFixed(2))
+            .style('fill', '#bbbbbb')
+            .style('font-size', '10px');
+        
+        // Add x-axis
         this.svg.append('g')
             .attr('class', 'x-axis')
             .attr('transform', `translate(0, ${innerHeight})`)
-            .call(d3.axisBottom(this.xScale));
+            .call(d3.axisBottom(this.xScale))
+            .selectAll('text')
+            .style('fill', '#bbbbbb');
         
+        // Add y-axis
         this.svg.append('g')
             .attr('class', 'y-axis')
-            .call(d3.axisLeft(this.yScale));
+            .call(d3.axisLeft(this.yScale))
+            .selectAll('text')
+            .style('fill', '#bbbbbb');
+        
+        // Add title
+        this.svg.append('text')
+            .attr('class', 'chart-title')
+            .attr('x', innerWidth / 2)
+            .attr('y', -10)
+            .attr('text-anchor', 'middle')
+            .text('Feature Importance')
+            .style('fill', '#ffffff')
+            .style('font-size', '16px');
     }
     
     measureMaxLabelWidth() {
