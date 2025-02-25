@@ -49,10 +49,30 @@ const ThreeSetup = {
     
     // Create orbit controls for camera
     createOrbitControls: function(camera, renderer) {
-        // Check if OrbitControls is available
-        if (typeof OrbitControls === 'undefined') {
-            console.warn('OrbitControls not available, using basic controls');
-            // Return a basic controls object with the same API
+        try {
+            // Check if OrbitControls is available
+            if (typeof OrbitControls === 'undefined') {
+                console.warn('OrbitControls not available, using basic controls');
+                // Return a basic controls object with the same API
+                return {
+                    enableDamping: false,
+                    dampingFactor: 0.05,
+                    rotateSpeed: 0.7,
+                    zoomSpeed: 0.7,
+                    panSpeed: 0.7,
+                    update: function() {}
+                };
+            }
+            
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.rotateSpeed = 0.7;
+            controls.zoomSpeed = 0.7;
+            controls.panSpeed = 0.7;
+            return controls;
+        } catch (error) {
+            console.warn('Error creating OrbitControls, using basic controls:', error);
             return {
                 enableDamping: false,
                 dampingFactor: 0.05,
@@ -62,14 +82,6 @@ const ThreeSetup = {
                 update: function() {}
             };
         }
-        
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.rotateSpeed = 0.7;
-        controls.zoomSpeed = 0.7;
-        controls.panSpeed = 0.7;
-        return controls;
     },
     
     // Create a particle system

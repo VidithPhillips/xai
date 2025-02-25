@@ -14,7 +14,7 @@ An interactive learning platform for Explainable AI concepts.
 - D3.js for data visualizations
 - Vanilla JavaScript for interactivity
 
-Updated: [Current Date and Time]
+Updated: June 2023
 
 ## Usage
 

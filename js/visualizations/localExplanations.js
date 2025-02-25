@@ -204,11 +204,11 @@ class LocalExplanationsVis {
             Math.abs(b.contribution) - Math.abs(a.contribution)
         );
         
-        // Create scales
+        // Create scales with proper domains
         const xScale = d3.scaleLinear()
             .domain([
-                d3.min(sortedFeatures, d => d.contribution) * 1.2, // Add 20% padding
-                d3.max(sortedFeatures, d => d.contribution) * 1.2
+                Math.min(0, d3.min(sortedFeatures, d => d.contribution) * 1.2), // Ensure 0 is included
+                Math.max(0, d3.max(sortedFeatures, d => d.contribution) * 1.2)  // Ensure 0 is included
             ])
             .range([0, chartWidth]);
         
@@ -255,9 +255,12 @@ class LocalExplanationsVis {
             .enter()
             .append('rect')
             .attr('class', 'bar')
-            .attr('x', d => d.contribution < 0 ? xScale(0) : xScale(0))
+            .attr('x', d => d.contribution < 0 ? xScale(d.contribution) : xScale(0))
             .attr('y', d => yScale(d.feature))
-            .attr('width', d => Math.max(0, Math.abs(xScale(d.contribution) - xScale(0))))
+            .attr('width', d => {
+                const width = Math.abs(xScale(d.contribution) - xScale(0));
+                return Math.max(0, width); // Ensure width is never negative
+            })
             .attr('height', yScale.bandwidth())
             .attr('fill', d => d.positive ? '#10b981' : '#ef4444')
             .attr('rx', 4)
@@ -375,5 +378,50 @@ class LocalExplanationsVis {
                 this.updateChart();
             }
         });
+    }
+    
+    // Add a legend to explain the colors and elements
+    addLegend() {
+        const legendContainer = this.svg.append('g')
+            .attr('class', 'legend')
+            .attr('transform', `translate(${this.width - 150}, 20)`);
+        
+        // Add legend title
+        legendContainer.append('text')
+            .attr('x', 0)
+            .attr('y', 0)
+            .text('Legend')
+            .style('font-weight', 'bold')
+            .style('font-family', 'Inter, sans-serif');
+        
+        // Add positive contribution
+        legendContainer.append('rect')
+            .attr('x', 0)
+            .attr('y', 10)
+            .attr('width', 15)
+            .attr('height', 15)
+            .attr('fill', '#10b981');
+        
+        legendContainer.append('text')
+            .attr('x', 20)
+            .attr('y', 22)
+            .text('Positive impact')
+            .style('font-size', '12px')
+            .style('font-family', 'Inter, sans-serif');
+        
+        // Add negative contribution
+        legendContainer.append('rect')
+            .attr('x', 0)
+            .attr('y', 35)
+            .attr('width', 15)
+            .attr('height', 15)
+            .attr('fill', '#ef4444');
+        
+        legendContainer.append('text')
+            .attr('x', 20)
+            .attr('y', 47)
+            .text('Negative impact')
+            .style('font-size', '12px')
+            .style('font-family', 'Inter, sans-serif');
     }
 } 

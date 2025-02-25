@@ -88,6 +88,26 @@ const VisualizationHelpers = {
         
         // Return a function to remove the event listener if needed
         return () => window.removeEventListener('resize', resizeHandler);
+    },
+    
+    // Check if an element is visible in the viewport
+    isElementVisible: function(element) {
+        if (!element) return false;
+        
+        const rect = element.getBoundingClientRect();
+        
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    },
+    
+    // Check if a section is currently active
+    isSectionActive: function(sectionId) {
+        const section = document.getElementById(sectionId);
+        return section && section.classList.contains('active');
     }
 };
 

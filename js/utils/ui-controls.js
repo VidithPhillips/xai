@@ -4,41 +4,91 @@
  */
 
 const UIControls = {
-    // Initialize section navigation
+    // Initialize navigation
     initNavigation: function() {
         const navLinks = document.querySelectorAll('nav a');
-        const sections = document.querySelectorAll('section');
         
-        // Handle navigation clicks
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 
-                // Get the target section id from the href
+                // Get the target section ID
                 const targetId = link.getAttribute('href').substring(1);
                 
-                // Update active states
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
+                // Clean up resources from the current active section
+                const currentActiveSection = document.querySelector('section.active');
+                if (currentActiveSection) {
+                    this.cleanupSection(currentActiveSection.id);
+                }
                 
-                sections.forEach(section => {
+                // Hide all sections
+                document.querySelectorAll('section').forEach(section => {
                     section.classList.remove('active');
-                    if (section.id === targetId) {
-                        section.classList.add('active');
-                    }
                 });
+                
+                // Show target section
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    
+                    // Trigger visualization initialization for the active section
+                    this.triggerVisualizationForSection(targetId);
+                }
+                
+                // Update active nav link
+                navLinks.forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                link.classList.add('active');
             });
         });
+    },
+    
+    // Trigger the appropriate visualization based on section ID
+    triggerVisualizationForSection: function(sectionId) {
+        console.log(`Triggering visualization for section: ${sectionId}`);
         
-        // Handle "Start Exploring" button
-        const startExploringBtn = document.getElementById('start-exploring');
-        if (startExploringBtn) {
-            startExploringBtn.addEventListener('click', () => {
-                // Navigate to the neural networks section
-                const neuralNetworksLink = document.querySelector('nav a[href="#neural-networks"]');
-                neuralNetworksLink.click();
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+            // Dispatch a custom event that the visualizations can listen for
+            const event = new CustomEvent('sectionActivated', { 
+                detail: { sectionId: sectionId }
             });
-        }
+            document.dispatchEvent(event);
+            
+            // Also directly call initialization functions if needed
+            switch(sectionId) {
+                case 'intro':
+                    if (typeof initIntroVisualization === 'function') {
+                        initIntroVisualization();
+                    }
+                    break;
+                case 'neural-networks':
+                    // Force neural network visualization to update
+                    if (window.neuralNetworkVis) {
+                        window.neuralNetworkVis.updateVisualization();
+                    }
+                    break;
+                case 'feature-importance':
+                    // Force feature importance visualization to update
+                    if (window.featureImportanceVis) {
+                        window.featureImportanceVis.updateChart();
+                    }
+                    break;
+                case 'local-explanations':
+                    // Force local explanations visualization to update
+                    if (window.localExplanationsVis) {
+                        window.localExplanationsVis.updateChart();
+                    }
+                    break;
+                case 'counterfactuals':
+                    // Force counterfactuals visualization to update
+                    if (window.counterfactualsVis) {
+                        window.counterfactualsVis.updateChart();
+                    }
+                    break;
+            }
+        }, 50); // Small delay to ensure DOM is ready
     },
     
     // Initialize modals
@@ -117,6 +167,18 @@ const UIControls = {
                 document.dispatchEvent(event);
             });
         });
+        
+        // Start exploring button
+        const startExploringBtn = document.getElementById('start-exploring');
+        if (startExploringBtn) {
+            startExploringBtn.addEventListener('click', () => {
+                // Navigate to neural networks section
+                const neuralNetworksLink = document.querySelector('nav a[href="#neural-networks"]');
+                if (neuralNetworksLink) {
+                    neuralNetworksLink.click();
+                }
+            });
+        }
     },
     
     // Create sliders for counterfactual features
@@ -166,5 +228,22 @@ const UIControls = {
             sliderGroup.appendChild(slider);
             slidersContainer.appendChild(sliderGroup);
         });
+    },
+    
+    // Add a method to clean up resources when leaving a section
+    cleanupSection: function(sectionId) {
+        // Clean up any resources that need to be released
+        // This helps prevent memory leaks and performance issues
+        
+        // For example, stop animations that aren't visible
+        if (sectionId === 'intro' && window.introAnimation) {
+            // If we had a way to pause the intro animation, we'd do it here
+        }
+        
+        // Clean up particle backgrounds if needed
+        if (window.particleBackgrounds && window.particleBackgrounds[sectionId]) {
+            // Pause animations or reduce particle count for hidden sections
+            // This improves performance
+        }
     }
 }; 

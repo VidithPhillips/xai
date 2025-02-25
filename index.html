@@ -95,30 +95,46 @@
         <section id="feature-importance">
             <div class="content">
                 <h2>Feature Importance</h2>
-                <p class="lead">Discover which features have the most influence on model predictions.</p>
+                <p class="lead">Understanding which features have the most influence on model predictions.</p>
                 
-                <div class="explanation">
-                    <h3>Global Feature Importance</h3>
-                    <p>Feature importance techniques help identify which input features have the greatest impact on a model's predictions across the entire dataset.</p>
-                    <p>Common methods include permutation importance, SHAP values, and model-specific techniques like feature importance in tree-based models.</p>
+                <div class="explanation-box">
+                    <h3>What is Feature Importance?</h3>
+                    <p>Feature importance helps us understand which input variables (features) have the most influence on a model's predictions. This is crucial for:</p>
+                    <ul>
+                        <li><strong>Model Understanding:</strong> Knowing which features drive predictions</li>
+                        <li><strong>Feature Selection:</strong> Identifying which features to keep or remove</li>
+                        <li><strong>Domain Insights:</strong> Gaining knowledge about the problem domain</li>
+                    </ul>
+                </div>
+                
+                <div class="method-selector">
+                    <h3>Importance Methods</h3>
+                    <p>Different methods calculate feature importance in different ways:</p>
                     
-                    <div class="dataset-selector">
-                        <h4>Select Dataset:</h4>
-                        <div class="dataset-options">
-                            <button class="dataset-btn active" data-dataset="housing">Housing Prices</button>
-                            <button class="dataset-btn" data-dataset="credit">Credit Approval</button>
-                            <button class="dataset-btn" data-dataset="medical">Medical Diagnosis</button>
-                        </div>
+                    <div class="method-options">
+                        <button class="method-btn active" data-method="permutation">
+                            <span class="method-name">Permutation</span>
+                            <span class="method-desc">Measures importance by randomly shuffling feature values</span>
+                        </button>
+                        <button class="method-btn" data-method="shap">
+                            <span class="method-name">SHAP</span>
+                            <span class="method-desc">Uses game theory to distribute prediction impact</span>
+                        </button>
+                        <button class="method-btn" data-method="tree">
+                            <span class="method-name">Tree-based</span>
+                            <span class="method-desc">Calculates importance from decision tree splits</span>
+                        </button>
                     </div>
-                    
-                    <div class="method-selector">
-                        <h4>Select Method:</h4>
-                        <div class="method-options">
-                            <button class="method-btn active" data-method="permutation">Permutation Importance</button>
-                            <button class="method-btn" data-method="shap">SHAP Values</button>
-                            <button class="method-btn" data-method="tree">Tree Importance</button>
-                        </div>
-                    </div>
+                </div>
+                
+                <div class="visualization-guide">
+                    <h3>How to Read the Visualization</h3>
+                    <ul>
+                        <li><strong>Bar Length:</strong> Longer bars indicate more important features</li>
+                        <li><strong>Color Intensity:</strong> Darker colors represent higher importance</li>
+                        <li><strong>Scale:</strong> Importance values range from 0 (no impact) to 1 (highest impact)</li>
+                    </ul>
+                    <p>Try selecting different datasets and methods to see how feature importance changes!</p>
                 </div>
             </div>
             <div class="visualization-container">
@@ -235,16 +251,20 @@
 
     <!-- Scripts - Consolidated and properly ordered -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/curves/CubicBezierCurve3.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/curves/CubicBezierCurve3.js"></script>
+    <script src="js/utils/orbit-controls-fallback.js"></script>
     <script src="js/utils/three-setup.js"></script>
     <script src="js/utils/ui-controls.js"></script>
     <script src="js/utils/visualization-helpers.js"></script>
+    <script src="js/utils/performance-optimizer.js"></script>
     <script src="js/visualizations/neuralNetwork.js"></script>
     <script src="js/visualizations/featureImportance.js"></script>
     <script src="js/visualizations/localExplanations.js"></script>
     <script src="js/visualizations/counterfactuals.js"></script>
+    <script src="js/utils/loading-animation.js"></script>
+    <script src="js/utils/particle-background.js"></script>
+    <script src="js/utils/intro-animation.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html> 

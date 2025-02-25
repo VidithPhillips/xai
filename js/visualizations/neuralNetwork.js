@@ -173,4 +173,44 @@ class NeuralNetworkVis {
             });
         }
     }
+
+    // Add tooltips to neural network nodes
+    addNodeTooltips() {
+        // For each node in the network
+        this.neurons.forEach(node => {
+            // Create a tooltip div
+            const tooltip = document.createElement('div');
+            tooltip.className = 'node-tooltip';
+            tooltip.style.display = 'none';
+            tooltip.style.position = 'absolute';
+            tooltip.style.background = 'white';
+            tooltip.style.padding = '10px';
+            tooltip.style.borderRadius = '5px';
+            tooltip.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            tooltip.style.zIndex = '1000';
+            
+            // Add tooltip content
+            tooltip.innerHTML = `
+                <h4>Neuron</h4>
+                <p>This neuron processes inputs and applies an activation function.</p>
+                <p>Layer: ${node.position.x}</p>
+                <p>Position: ${node.position.y}</p>
+            `;
+            
+            document.body.appendChild(tooltip);
+            
+            // Show tooltip on hover
+            node.addEventListener('mouseover', (event) => {
+                const rect = this.container.getBoundingClientRect();
+                tooltip.style.left = (event.clientX + 10) + 'px';
+                tooltip.style.top = (event.clientY + 10) + 'px';
+                tooltip.style.display = 'block';
+            });
+            
+            // Hide tooltip when not hovering
+            node.addEventListener('mouseout', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+    }
 } 

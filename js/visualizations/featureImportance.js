@@ -7,8 +7,15 @@ class FeatureImportanceVis {
     constructor(containerId) {
         this.containerId = containerId;
         this.container = document.getElementById(containerId);
-        this.dataset = 'housing';
-        this.method = 'permutation';
+        
+        if (!this.container) {
+            console.error(`Container #${containerId} not found`);
+            return;
+        }
+        
+        // Initialize properties
+        this.dataset = 'credit';
+        this.method = 'shap';
         
         // Sample data for different datasets and methods
         this.data = {
@@ -110,11 +117,25 @@ class FeatureImportanceVis {
             }
         };
         
-        // Initialize the visualization
-        this.init();
+        // Create SVG
+        this.createSvg();
+        
+        // Set up event listeners
+        this.setupEventListeners();
+        
+        // Initial chart rendering
+        this.updateChart();
+        
+        // Listen for section activation
+        document.addEventListener('sectionActivated', (event) => {
+            if (event.detail.sectionId === 'feature-importance') {
+                console.log('Feature importance section activated, updating chart');
+                this.updateChart();
+            }
+        });
     }
     
-    init() {
+    createSvg() {
         // Create SVG container
         this.svg = d3.select(`#${this.containerId}`)
             .append('svg')
@@ -141,17 +162,6 @@ class FeatureImportanceVis {
             .style('font-family', 'Poppins, sans-serif')
             .style('font-size', '16px')
             .style('font-weight', '600');
-        
-        // Draw initial chart
-        this.updateChart();
-        
-        // Set up event listeners
-        this.setupEventListeners();
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            this.updateChart();
-        });
     }
     
     updateChart() {
@@ -272,5 +282,39 @@ class FeatureImportanceVis {
             this.method = event.detail.method;
             this.updateChart();
         });
+    }
+    
+    addExplanations() {
+        // Create an explanation container
+        const explanationContainer = d3.select(`#${this.containerId}`)
+            .append('div')
+            .attr('class', 'visualization-explanation')
+            .style('position', 'absolute')
+            .style('bottom', '10px')
+            .style('left', '10px')
+            .style('background', 'rgba(255, 255, 255, 0.9)')
+            .style('padding', '10px')
+            .style('border-radius', '5px')
+            .style('max-width', '300px')
+            .style('font-size', '14px')
+            .style('box-shadow', '0 2px 4px rgba(0,0,0,0.1)');
+        
+        // Add explanation text
+        explanationContainer.append('p')
+            .html(`<strong>How to read this chart:</strong> Longer bars indicate features that have a stronger influence on the model's predictions. The ${this.method.toUpperCase()} method quantifies each feature's importance from 0 to 1.`);
+        
+        // Add a close button
+        explanationContainer.append('button')
+            .attr('class', 'close-explanation')
+            .style('position', 'absolute')
+            .style('top', '5px')
+            .style('right', '5px')
+            .style('background', 'none')
+            .style('border', 'none')
+            .style('cursor', 'pointer')
+            .text('×')
+            .on('click', function() {
+                explanationContainer.style('display', 'none');
+            });
     }
 } 
