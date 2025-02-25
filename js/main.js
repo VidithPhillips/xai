@@ -41,13 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize particle backgrounds for each section
 function initParticleBackgrounds() {
-    // Different colors and settings for each section
+    // Different colors and settings for each section - reduced count
     const sections = [
-        { id: 'intro', color: '#6366f1', count: 40 },
-        { id: 'neural-networks', color: '#10b981', count: 30 },
-        { id: 'feature-importance', color: '#f59e0b', count: 25 },
-        { id: 'local-explanations', color: '#8b5cf6', count: 35 },
-        { id: 'counterfactuals', color: '#ef4444', count: 20 }
+        { id: 'intro', color: '#6366f1', count: 15 }, // Reduced from 40
+        { id: 'neural-networks', color: '#10b981', count: 12 }, // Reduced from 30
+        { id: 'feature-importance', color: '#f59e0b', count: 10 }, // Reduced from 25
+        { id: 'local-explanations', color: '#8b5cf6', count: 12 }, // Reduced from 35
+        { id: 'counterfactuals', color: '#ef4444', count: 10 } // Reduced from 20
     ];
     
     sections.forEach(section => {
@@ -55,7 +55,7 @@ function initParticleBackgrounds() {
             window.particleBackgrounds[section.id] = new ParticleBackground(section.id, {
                 particleColor: section.color,
                 particleCount: section.count,
-                lineColor: `${section.color}33` // Add transparency
+                lineColor: `${section.color}15` // Even more transparency (15 instead of 33)
             });
         } catch (error) {
             console.error(`Error initializing particle background for ${section.id}:`, error);

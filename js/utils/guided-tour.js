@@ -9,7 +9,7 @@ const GuidedTour = {
         const container = document.getElementById(visualizationId);
         if (!container) return;
         
-        // Create tour button
+        // Create tour button with improved styling
         const tourButton = document.createElement('button');
         tourButton.className = 'tour-button';
         tourButton.textContent = 'Take a Tour';
@@ -23,6 +23,9 @@ const GuidedTour = {
         tourButton.style.border = 'none';
         tourButton.style.borderRadius = '4px';
         tourButton.style.cursor = 'pointer';
+        tourButton.style.fontSize = '14px';
+        tourButton.style.fontWeight = '500';
+        tourButton.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
         
         container.style.position = 'relative';
         container.appendChild(tourButton);

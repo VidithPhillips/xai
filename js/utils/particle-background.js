@@ -8,15 +8,15 @@ class ParticleBackground {
         this.container = document.getElementById(containerId);
         if (!this.container) return;
         
-        // Default options
+        // Default options - reduced particle count and opacity
         this.options = Object.assign({
-            particleCount: 50,
+            particleCount: 20, // Reduced from 50
             particleColor: '#4f46e5',
-            particleSize: 2,
-            particleSpeed: 1,
+            particleSize: 1.5, // Reduced from 2
+            particleSpeed: 0.5, // Reduced from 1
             connectParticles: true,
-            connectDistance: 100,
-            lineColor: 'rgba(79, 70, 229, 0.15)'
+            connectDistance: 80, // Reduced from 100
+            lineColor: 'rgba(79, 70, 229, 0.08)' // Reduced opacity
         }, options);
         
         // Create canvas
