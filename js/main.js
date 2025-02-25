@@ -944,7 +944,7 @@ function handleHashChange() {
 function initVisualizationForSection(sectionId) {
     console.log('Initializing visualization for section:', sectionId);
     
-    // Clean up existing visualization
+    // Clean up any existing visualization instance
     if (window.currentVisualization) {
         if (typeof window.currentVisualization.dispose === 'function') {
             window.currentVisualization.dispose();
@@ -952,7 +952,6 @@ function initVisualizationForSection(sectionId) {
         window.currentVisualization = null;
     }
     
-    // Get container ID based on section
     const containerMap = {
         'introduction': 'intro-visualization',
         'neural-networks': 'neural-network-visualization',
@@ -964,14 +963,19 @@ function initVisualizationForSection(sectionId) {
     const containerId = containerMap[sectionId];
     if (!containerId) return;
     
-    // Show loading indicator
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    const loadingIndicator = LoadingAnimation.show(containerId);
+    // Delay initialization if container dimensions are zero
+    if (container.clientWidth === 0 || container.clientHeight === 0) {
+        console.warn(`Container ${containerId} has zero dimensions, delaying visualization initialization.`);
+        setTimeout(() => initVisualizationForSection(sectionId), 200);
+        return;
+    }
     
+    // Show loading indicator
+    const loadingIndicator = LoadingAnimation.show(containerId);
     try {
-        // Initialize appropriate visualization
         switch(sectionId) {
             case 'introduction':
                 window.currentVisualization = new IntroAnimation(containerId);
@@ -998,7 +1002,6 @@ function initVisualizationForSection(sectionId) {
             </div>
         `;
     } finally {
-        // Hide loading indicator
         if (loadingIndicator) {
             LoadingAnimation.hide(loadingIndicator);
         }

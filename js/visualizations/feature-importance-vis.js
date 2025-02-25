@@ -76,51 +76,16 @@ class FeatureImportanceVis {
         this.xScale.domain([0, d3.max(data, d => d.importance)]);
         
         // Update bars with transition
-        const bars = this.svg.selectAll('.bar')
-            .data(data);
-        
-        // Update colors for dark theme
-        const colorScale = d3.scaleLinear()
-            .domain([0, this.maxImportance])
-            .range(['#00395e', '#00f2ff']);
-            
-        // Only add glow filter if it doesn't exist yet
-        if (!this.svg.select('defs').node()) {
-            // Add a glow filter for neon effect
-            const defs = this.svg.append('defs');
-            const filter = defs.append('filter')
-                .attr('id', 'feature-glow');  // Use unique ID to avoid conflicts
-                
-            filter.append('feGaussianBlur')
-                .attr('stdDeviation', '2.5')
-                .attr('result', 'coloredBlur');
-                
-            const feMerge = filter.append('feMerge');
-            feMerge.append('feMergeNode')
-                .attr('in', 'coloredBlur');
-            feMerge.append('feMergeNode')
-                .attr('in', 'SourceGraphic');
-        }
-        
-        // Enter new bars
-        bars.enter()
+        this.svg.selectAll('.bar')
+            .data(data)
+            .enter()
             .append('rect')
-            .attr('class', 'bar')
+            .attr('class', d => d.importance < 0 ? 'bar negative-bar' : 'bar positive-bar')
+            .attr('x', d => d.importance < 0 ? this.xScale(d.importance) : this.xScale(0))
             .attr('y', d => this.yScale(d.feature))
             .attr('height', this.yScale.bandwidth())
-            .attr('x', 0)
-            .attr('width', 0)
-            .attr('fill', d => colorScale(d.importance))
-            .attr('filter', 'url(#feature-glow)')
-            .merge(bars) // Combine enter + update
-            .transition()
-            .duration(750)
-            .attr('y', d => this.yScale(d.feature))
-            .attr('width', d => this.xScale(d.importance))
-            .attr('fill', d => colorScale(d.importance));
-        
-        // Remove old bars
-        bars.exit().remove();
+            .attr('width', d => Math.abs(this.xScale(d.importance) - this.xScale(0)))
+            .attr('fill', d => d.importance < 0 ? negativeColor : positiveColor);
         
         // Update value labels
         const labels = this.svg.selectAll('.value-label')
